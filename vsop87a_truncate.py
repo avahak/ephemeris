@@ -30,7 +30,7 @@ MEAN_DISTANCE_FROM_SUN = {
 THRESHOLD_WEIGHT = { key: min(value, abs(1.0-value) if key != 'EARTH-MOON' else 1.0) for key, value in MEAN_DISTANCE_FROM_SUN.items()}
 THRESHOLD_EXP = 7
 # THRESHOLD_BASE represents the general amount of wiggleroom to round or truncate the coeffs.
-# Here 1.0e-7 is sweet spot, resulting in only minor additional error and <100k file size.
+# Here 1.0e-7 is a good starting point resulting in relatively small error and file size
 THRESHOLD_BASE = np.power(10.0, -THRESHOLD_EXP)
 # T_MAX represents the assumption for maximum |t| when simplifying the coefficients.
 T_MAX = 5.0
@@ -44,12 +44,12 @@ def simplify(a: float, b: float, c: float, limit: float, alpha: int):
     Theory here: Assume |t|<=T_MAX. The terms in the series have form 
     t^alpha * a * cos(b + c*t),
     where a, b, c can be simplified. How much can each of the terms a, b, c be modified
-    (replacing a with a' with |a-a'|<Delta_a etc.) while affecting the term less than the limit? 
-    Over all possible |t|<=T_MAX the equations for upper bounds for modifications Delta are 
-        Delta_a <= limit / T_MAX^alpha
-        Delta_b * |a| <= limit / T_MAX^alpha
-        Delta_c * |a| <= limit / T_MAX^alpha
-    So we can take Delta_a=limit/T_MAX^alpha, Delta_b=Delta_c=THRESHOLD/|a|/T_MAX^alpha.
+    (replacing a with a' with |a-a'|<delta_a etc.) while affecting the term less than the limit? 
+    Over all possible |t|<=T_MAX the equations for upper bounds for modifications delta are 
+        delta_a <= limit / T_MAX^alpha
+        delta_b * |a| <= limit / T_MAX^alpha
+        delta_c * |a| <= limit / T_MAX^alpha
+    So we can take delta_a=limit/T_MAX^alpha, delta_b=delta_c=THRESHOLD/|a|/T_MAX^alpha.
     This function returns the simplest a',b',c' found in the allowed intervals.
     """
     if a == 0.0:
@@ -78,14 +78,14 @@ def truncate_series(obj_raw):
             coeffs_truncated = []
             for a, b, c in coeffs:
                 ap, bp, cp = simplify(a, b, c, body_limit, alpha)
-                if ap == 0.0:
+                if ap == 0:
                     continue
 
                 coeffs_truncated.extend([ap, bp, cp])
                 term_count[body_name] = term_count.get(body_name, 0) + 1
 
             if coeffs_truncated:
-                groups_truncated: dict = bodies_truncated.setdefault(body_name, [])
+                groups_truncated = bodies_truncated.setdefault(body_name, [])
                 groups_truncated.append({ 'coord': coord, 'alpha': alpha, 'coeffs': coeffs_truncated })
 
     print(f'total # of terms = {sum(term_count.values())},\n{term_count = }')

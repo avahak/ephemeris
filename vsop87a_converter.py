@@ -7,9 +7,9 @@ import json
 
 from fixed_length_reader import FixedLengthReader
 
-INPUT_DIRECTORY = 'd:/resources/astro/vsop87'
-TEST_OUTPUT_PATH = './json/vsop87a_tests.json'
-OUTPUT_RAW_JSON_PATH = './json/vsop87a_raw.json'
+INPUT_DIRECTORY = R'd:/resources/astro/vsop87'
+TEST_OUTPUT_PATH = R'./json/vsop87a_tests.json'
+OUTPUT_RAW_JSON_PATH = R'./json/vsop87a_raw.json'
 
 VSOP87_NAME_INDEXING = { 
     'MERCURY': (1, 'VSOP87A.mer'), 
@@ -23,7 +23,7 @@ VSOP87_NAME_INDEXING = {
     'EARTH-MOON': (9, 'VSOP87A.emb')
 }
 
-# List of mean longitudes.
+# List of mean longitudes
 # LAMBDA = [
 #     [4.40260884240, 26087.9031415742], 
 #     [3.17614669689, 10213.2855462110],
@@ -76,10 +76,10 @@ def load_raw_data():
                     if line[1:7] == 'VSOP87':   # header lines (no coefficients)
                         continue
                     coord, alpha, *a_coeffs, s, k, a, b, c = reader.read(line)
-                    # We only store a, b, c as they are enough for pos, vel
+                    # For our purposes we only need coord, alpha, a, b, c
                     entry = [a, b, c]
                     groups: dict = bodies.setdefault(body_name, {})
-                    groups.setdefault((coord, alpha), []).extend(entry)
+                    groups.setdefault((coord-1, alpha), []).extend(entry)
                     term_count[body_name] = term_count.get(body_name, 0) + 1
                 except ValueError as e:
                     print(e)

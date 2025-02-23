@@ -9,6 +9,8 @@ import tools
 from vsop87a_ephemeris import VSOP87Ephemeris
 from mpp02_ephemeris import MPP02Ephemeris
 
+JPL_DE_EPHEMERIS_PATH = R'd:/resources/astro/de/de441.bsp'
+
 # ecliptic to equatorial J2000.0
 ROT_ECL_EQU = tools.rotation_matrix(0, 84381.448/3600*np.pi/180.0)
 
@@ -46,13 +48,12 @@ def run_vsop87_checks(vsop87: VSOP87Ephemeris):
     """
     Runs checks from vsop87.chk for VSOP87A.
     """
-    tests = tools.load_json('./json/vsop87a_tests.json')
+    tests = tools.load_json(R'./json/vsop87a_tests.json')
     errors_pos = []
     errors_vel = []
     for test in tests:
         body = test['body']
         jd = test['jd']
-        # NOTE! t is time expressed in Thousands of Julian Years (tjy) elapsed from J2000.0
         t = (jd - 2451545.0) / 36525.0
         correct_pos = np.array(test['p'])
         correct_vel = np.array(test['v'])
@@ -117,13 +118,13 @@ def test_planet_ephemeris_against_jpl_de(planet_ephemeris, jpl_pos_vel, num):
             errors_p = []
             errors_v = []
             for t in test_times[interval]:
-                p0_earth = jpl_pos_vel([0, 3], t) + jpl_pos_vel([3, 399], t)
+                p0_earth, _ = jpl_pos_vel([0, 3, 399], t)
                 p0, v0 = jpl_pos_vel(JPL_DE_ROUTES[body_name], t)
                 p, v = planet_ephemeris(body_name, t)
                 error_p_sun = np.linalg.norm(p-p0) / np.linalg.norm(p0)
                 error_p_earth = np.linalg.norm(p-p0) / np.linalg.norm(p0-p0_earth)
                 error_v = np.linalg.norm(v-v0) / np.linalg.norm(v0)
-                errors_p.extend([error_p_sun, error_p_earth] if body_name != 'EMB' else [error_p_sun])
+                errors_p.extend([error_p_sun, error_p_earth] if body_name != 'EARTH-MOON' else [error_p_sun])
                 errors_v.append(error_v)
             err_0 = tools.dms_string(tools.stats(np.array(errors_p))['mean'], 2)
             err_stddev = tools.dms_string(tools.stats(np.array(errors_p))['stdDev'], 2)
@@ -154,7 +155,7 @@ def compare_pos_vel_functions(pos_vel, pos_vel_ref, num, print_header=True):
         err_2 = tools.stats(np.array(errors_v))['max']
         print(f'{interval:>16}{str(err_0):>15}{str(err_stddev):>15}{str(err_1):>15}{f'{err_2:.0e}':>15}')
 
-def run_tests():
+def run_tests(test_num):
     vsop87 = VSOP87Ephemeris(R'./json/vsop87a_raw.json')
     mpp02_llr = MPP02Ephemeris(R'./json/mpp02_llr_raw.json')
     mpp02_405 = MPP02Ephemeris(R'./json/mpp02_405_raw.json')
@@ -165,15 +166,13 @@ def run_tests():
     print('\n', '-'*20, 'ELP/MPP02: CODE PORT TESTS AGAINST FORTRAN OUTPUT', '-'*20)
     run_mpp02_tests(mpp02_llr, mpp02_405)
 
-    with tools.jplephem_pos_vel(R'd:/resources/astro/de/de441.bsp') as jpl_pos_vel:
-        num = 100
-
+    with tools.jplephem_pos_vel(JPL_DE_EPHEMERIS_PATH) as jpl_pos_vel:
         print('\n', '-'*20, 'RAW VSOP87A ERROR AGAINST DE441', '-'*20)
-        test_planet_ephemeris_against_jpl_de(vsop87.get_pos_vel, jpl_pos_vel, num)
+        test_planet_ephemeris_against_jpl_de(vsop87.get_pos_vel, jpl_pos_vel, test_num)
 
         print('\n', '-'*20, 'RAW ELP/MPP02(LLR) ERROR AGAINST DE441', '-'*20)
         jpl_moon_pos_vel = lambda t: jpl_pos_vel([399, 3, 301], t)
-        compare_pos_vel_functions(mpp02_llr.get_pos_vel, jpl_moon_pos_vel, num)
+        compare_pos_vel_functions(mpp02_llr.get_pos_vel, jpl_moon_pos_vel, test_num)
 
 if __name__ == '__main__':
-    run_tests()
+    run_tests(100)

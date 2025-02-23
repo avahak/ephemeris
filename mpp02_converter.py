@@ -15,8 +15,8 @@ from fixed_length_reader import FixedLengthReader
 
 RAD = 648000.0 / np.pi
 DEG = np.pi / 180.0
-SERIES_DIRECTORY = 'd:/resources/astro/elp_mpp02'   # directory for ELP_MAIN.S1, etc.
-OUTPUT_DIRECTORY = './json'
+SERIES_DIRECTORY = R'd:/resources/astro/elp_mpp02'   # directory for ELP_MAIN.S1, etc.
+OUTPUT_DIRECTORY = R'./json'
 
 def dms(ideg, imin, sec):
     return (ideg + imin/60.0 + sec/3600.0) * DEG
@@ -259,6 +259,7 @@ def write_json(mode, w0, nmpb, cmpb, fmpb, nper, cper, fper):
         for alpha in range(4):
             # Perturbations
             coeffs_pert = [(cper[ir], *[fper[k, ir] for k in range(5)]) for ir in range(nper[coord, alpha, 1], nper[coord, alpha, 2])]
+            # Combine the terms from both sources
             coeffs = [*coeffs_main, *coeffs_pert] if alpha == 0 else coeffs_pert
             if len(coeffs) > 0:
                 groups.append({ 'coord': coord, 'alpha': alpha, 'coeffs': np.array(coeffs).flatten().tolist() })

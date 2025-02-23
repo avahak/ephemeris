@@ -27,12 +27,12 @@ class VSOP87Ephemeris:
         Returns position and velocity for given body and time in Julian centuries since J2000.0.
         Units are km, Julian day.
         """
-        # Covert from centuries to millenia:
+        # Convert from centuries to millenia:
         t = 0.1 * t
         pos = np.zeros(3)
         vel = np.zeros(3)
         for group in self.bodies[body_name]:
-            coord_index = group['coord'] - 1
+            coord = group['coord']
             alpha = group['alpha']
             coeffs = group['coeffs']
 
@@ -48,8 +48,8 @@ class VSOP87Ephemeris:
 
             t_pow_alpha = np.power(t, alpha)
             t_pow_alpha_p = alpha * np.power(t, alpha-1) if alpha > 0 else 0.0
-            pos[coord_index] += t_pow_alpha * sum_pos
-            vel[coord_index] += t_pow_alpha_p * sum_pos + t_pow_alpha * sum_vel
+            pos[coord] += t_pow_alpha * sum_pos
+            vel[coord] += t_pow_alpha_p * sum_pos + t_pow_alpha * sum_vel
         return self.matrix @ pos * self.AU, self.matrix @ vel * self.AU / 365250.0
 
 if __name__ == '__main__':

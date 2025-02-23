@@ -60,7 +60,7 @@ def truncate_series(obj_raw):
             # We normalize here by reducing to unit sphere.
             limit = THRESHOLD/tools.ARCSEC if coord != 2 else THRESHOLD*384399.0
             c_new = simplify(c, alpha, limit)
-            if c_new[0] == 0.0:
+            if c_new[0] == 0:
                 continue
             coeffs_truncated.extend(c_new)
         if coeffs_truncated:

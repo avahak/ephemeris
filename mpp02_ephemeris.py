@@ -79,7 +79,7 @@ class MPP02Ephemeris:
         pos[1] = 2.0*p*q*h[0] + qc1*h[1] - 2.0*q*sc*h[2]
         pos[2] = -2.0*p*sc*h[0] + 2.0*q*sc*h[1] + (pc1+qc1-1.0)*h[2]
 
-        # Finally, rotate from mean ecliptic of J2000.0 to mean equator and ecliptic of J2000.0.
+        # Finally, rotate from mean ecliptic of J2000.0 to mean equator and equinox of J2000.0.
         pos_equatorial = np.array([
             pos[0], 
             pos[1]*np.cos(self.EP) - pos[2]*np.sin(self.EP), 
@@ -92,8 +92,7 @@ class MPP02Ephemeris:
         """
         Computes position and velocity.
         """
-        # t_pow = np.power(t, np.arange(5))
-        t_pow = np.array([np.power(t, alpha) for alpha in range(5)])
+        t_pow = np.power(t, np.arange(5))
 
         v = np.zeros(3)
         vp = np.zeros(3)
@@ -172,7 +171,7 @@ class MPP02Ephemeris:
         vel[2] = -2.0*p*sc*hp[0] + 2.0*q*sc*hp[1] + (pc1+qc1-1.0)*hp[2] 
         vel[2] += -2.0*pc2*h[0] + 2.0*qc2*h[1] - 2.0*d2p*h[2]
 
-        # Finally, rotate from mean ecliptic of J2000.0 to mean equator and ecliptic of J2000.0.
+        # Finally, rotate from mean ecliptic of J2000.0 to mean equator and equinox of J2000.0.
         pos_equatorial = np.array([
             pos[0], 
             pos[1]*np.cos(self.EP) - pos[2]*np.sin(self.EP), 
