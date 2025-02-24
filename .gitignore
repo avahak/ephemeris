@@ -1,3 +1,9 @@
 *.txt
-old
+!requirements.txt
+*.env
+*.log
+venv
+.venv
 __pycache__
+
+old

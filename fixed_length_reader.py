@@ -21,8 +21,8 @@ class FixedLengthReader:
         """
         Parse a field specification like '13i3' or 's' into (multiplicity, field_type, length).
         """
-        multiplicity = ''
         i = 0
+        multiplicity = ''
         while i < len(part) and part[i].isdigit():
             multiplicity += part[i]
             i += 1

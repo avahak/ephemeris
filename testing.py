@@ -34,7 +34,7 @@ def generate_test_times(num):
     (Julian centuries since J2000.0) for each.
     """
     times = {}
-    interval_radii = [15000, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 10]
+    interval_radii = [15000, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 30]
     for r in interval_radii:
         times_r = []
         for k in range(num):

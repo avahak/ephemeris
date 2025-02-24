@@ -40,7 +40,7 @@ def simplify(c: list[float], alpha: int, limit: float):
         c_new.append(tools.simplest_float_in(c[k+1], c[k+1]-leeway, c[k+1]+leeway))
     return [tools.convert_integer_floats(c) for c in c_new]
 
-def count_coeffs(obj, report_all=False):
+def count_terms(obj, report_all=False):
     counts = {}
     for group in obj['groups']:
         key = f'({group['coord']},{group['alpha']})'
@@ -67,7 +67,7 @@ def truncate_series(obj_raw):
             groups_truncated.append({ 'coord': coord, 'alpha': alpha, 'coeffs': coeffs_truncated })
     comment = obj_raw['_comment'] + f' :: Truncated ({T_MAX=}, {THRESHOLD=})'
     obj = { '_comment': comment, 'W': obj_raw['W'], 'groups': groups_truncated }
-    print(f'Truncated from {count_coeffs(obj_raw)} ({count_coeffs(obj_raw, True)})\n to {count_coeffs(obj)} ({count_coeffs(obj, True)})')
+    print(f'Truncated from {count_terms(obj_raw)} ({count_terms(obj_raw, True)})\n to {count_terms(obj)} ({count_terms(obj, True)})')
     return obj
 
 def write_data(obj, file_path: str):
