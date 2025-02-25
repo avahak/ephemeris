@@ -4,6 +4,7 @@ const VSOP87AEphemeris = require('./vsop87aEphemeris');
 const MPP02Ephemeris = require('./mpp02Ephemeris');
 
 function test() {
+    // Load JSON files
     let jsonVSOP, jsonMPP02;
     try {
         let data = fs.readFileSync('../json/vsop87a_raw.json', 'utf8');
@@ -21,34 +22,38 @@ function test() {
     // Test VSOP87AEphemeris
     const bodyNames = Object.keys(jsonVSOP['bodies']);
     let vsop87 = new VSOP87AEphemeris(jsonVSOP);
-    let count = -0.5;
+    let count = 0;
     let durationMs = 1000;
     let time0 = performance.now();
-    while (performance.now() < time0 + durationMs) {
-        let t = 20.0*Math.random() - 10.0;
+    let time = time0;
+    while (time < time0 + durationMs) {
+        let t = 60.0*Math.random() - 30.0;
         let bodyName = bodyNames[Math.floor(Math.random()*bodyNames.length)];
         const pv = vsop87.getPosVel(bodyName, t);
+        time = performance.now();
         count += 1;
         // console.log(count, bodyName, t, pv);
     }
     let pv = vsop87.getPosVel('EARTH-MOON', -5.25);
-    console.log(`VSOP87A: getPosVel: ~${(count/durationMs*1000).toFixed(0)} calls/s.`);
+    console.log(`VSOP87A: getPosVel: ~${(count/(time-time0)*1000).toFixed(0)} calls/s.`);
     console.log("VSOP87A: getPosVel('EARTH-MOON', -5.25)", pv);
 
 
     // Test MPP02Ephemeris
     let mpp02 = new MPP02Ephemeris(jsonMPP02);
-    count = -0.5;
+    count = 0;
     durationMs = 1000;
     time0 = performance.now();
-    while (performance.now() < time0 + durationMs) {
-        let t = 20.0*Math.random() - 10.0;
+    time = time0;
+    while (time < time0 + durationMs) {
+        let t = 60.0*Math.random() - 30.0;
         const pv = mpp02.getPosVel(t);
+        time = performance.now();
         count += 1;
         // console.log(count, bodyName, t, pv);
     }
     pv = mpp02.getPosVel(-5.25);
-    console.log(`MPP02: getPosVel: ~${(count/durationMs*1000).toFixed(0)} calls/s.`);
+    console.log(`MPP02: getPosVel: ~${(count/(time-time0)*1000).toFixed(0)} calls/s.`);
     console.log("MPP02: getPosVel(-5.25)", pv);
 }
 

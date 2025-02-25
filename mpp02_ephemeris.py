@@ -15,7 +15,7 @@ class MPP02Ephemeris:
     """
     PC = np.array([0.0, 0.10180391e-4, 0.47020439e-6, -0.5417367e-9, -0.2507948e-11, 0.463486e-14])
     QC = np.array([0.0, -0.113469002e-3, 0.12372674e-6, 0.1265417e-8, -0.1371808e-11, -0.320334e-14])
-    EP = 0.40909280422232897    # ~23.44 deg
+    ECL_TO_EQU = tools.rotation_matrix(0, 84381.448 * tools.ARCSEC)  # angle ~23.44 deg
 
     def __init__(self, source):
         """
@@ -54,22 +54,13 @@ class MPP02Ephemeris:
             v[coord] += t_pow[alpha] * c0_sin
             vp[coord] += t_pow_p[alpha] * c0_sin + t_pow[alpha] * c0_sin_p
 
-            # Same without numpy vectorization:
-            # for c in coeffs:
-            #     a = c[1]
-            #     ap = 0.0
-            #     for k in range(1, 5):
-            #         a += c[k+1] * t_pow[k]
-            #         ap += k * c[k+1] * t_pow[k-1]
-            #     v[coord] += c[0] * t_pow[alpha] * np.sin(a)
-            #     vp[coord] += c[0] * (t_pow_alpha_p * np.sin(a)  +  t_pow[alpha] * ap * np.cos(a))
-
         # Compute spherical coordinates and their derivatives for the mean ecliptic of date.
-        v[0] = v[0] * tools.ARCSEC + np.sum(self.W * t_pow[:5])
-        v[1] = v[1] * tools.ARCSEC
-        v[2] = v[2] * 0.9999999498265191
-        vp[0] = vp[0] * tools.ARCSEC + np.sum(self.W * t_pow_p[:5])
-        vp[1] = vp[1] * tools.ARCSEC
+        v[0] = v[0]*tools.ARCSEC + np.sum(self.W * t_pow[:5])
+        v[1] *= tools.ARCSEC
+        v[2] *= 0.9999999498265191
+        vp[0] = vp[0]*tools.ARCSEC + np.sum(self.W * t_pow_p[:5])
+        vp[1] *= tools.ARCSEC
+        vp[2] *= 0.9999999498265191
 
         # Change to cartesian coordinates
         h = np.array([
@@ -89,7 +80,7 @@ class MPP02Ephemeris:
         pp = np.sum(self.PC * t_pow_p)
         qp = np.sum(self.QC * t_pow_p)
 
-        sc = np.sqrt(max(1.0 - p*p - q*q, 0.0))
+        sc = np.sqrt(1.0 - p*p - q*q)
         pc1 = 1.0 - 2.0*p*p
         qc1 = 1.0 - 2.0*q*q
         pqp = pp*q + p*qp
@@ -105,24 +96,14 @@ class MPP02Ephemeris:
         vel = np.zeros(3)
         vel[0] = pc1*hp[0] + 2.0*p*q*hp[1] + 2.0*p*sc*hp[2] 
         vel[0] += -4.0*p*pp*h[0] + 2.0*pqp*h[1] + 2.0*pc2*h[2]
-
         vel[1] = 2.0*p*q*hp[0] + qc1*hp[1] - 2.0*q*sc*hp[2] 
         vel[1] += 2.0*pqp*h[0] - 4.0*q*qp*h[1] - 2.0*qc2*h[2]
-        
         vel[2] = -2.0*p*sc*hp[0] + 2.0*q*sc*hp[1] + (pc1+qc1-1.0)*hp[2] 
         vel[2] += -2.0*pc2*h[0] + 2.0*qc2*h[1] - 2.0*d2p*h[2]
 
         # Finally, rotate from mean ecliptic of J2000.0 to mean equator and equinox of J2000.0.
-        pos_equatorial = np.array([
-            pos[0], 
-            pos[1]*np.cos(self.EP) - pos[2]*np.sin(self.EP), 
-            pos[1]*np.sin(self.EP) + pos[2]*np.cos(self.EP)
-        ])
-        vel_equatorial = np.array([
-            vel[0], 
-            vel[1]*np.cos(self.EP) - vel[2]*np.sin(self.EP), 
-            vel[1]*np.sin(self.EP) + vel[2]*np.cos(self.EP)
-        ])
+        pos_equatorial = self.ECL_TO_EQU @ pos
+        vel_equatorial = self.ECL_TO_EQU @ vel
 
         return pos_equatorial, vel_equatorial / 36525.0
 

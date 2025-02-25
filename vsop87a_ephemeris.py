@@ -42,13 +42,6 @@ class VSOP87AEphemeris:
             sum_pos = np.sum(coeffs[:,0] * np.cos(coeffs[:,1] + t*coeffs[:,2]))
             sum_vel = -np.sum(coeffs[:,0] * coeffs[:,2] * np.sin(coeffs[:,1] + t*coeffs[:,2]))
 
-            # Same without numpy vectorization:
-            # sum_pos = 0.0
-            # sum_vel = 0.0
-            # for a, b, c in coeffs:
-            #     sum_pos += a * np.cos(b + c*t)
-            #     sum_vel -= a * c * np.sin(b + c*t)
-
             pos[coord] += t_pow[alpha] * sum_pos
             vel[coord] += t_pow_p[alpha] * sum_pos + t_pow[alpha] * sum_vel
         return self.matrix @ pos * self.AU, self.matrix @ vel * self.AU / 365250.0
