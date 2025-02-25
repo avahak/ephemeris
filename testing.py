@@ -1,12 +1,12 @@
 """
-Checks VSOP87Ephemeris and MPP02Ephemeris implementations against
+Checks VSOP87AEphemeris and MPP02Ephemeris implementations against
 reference output from vsop87.chk and ELP/MPP02 Fortran code. Also computes
 errors against JPL DE ephemeris.
 """
 import numpy as np
 
 import tools
-from vsop87a_ephemeris import VSOP87Ephemeris
+from vsop87a_ephemeris import VSOP87AEphemeris
 from mpp02_ephemeris import MPP02Ephemeris
 
 JPL_DE_EPHEMERIS_PATH = R'd:/resources/astro/de/de441.bsp'
@@ -44,7 +44,7 @@ def generate_test_times(num):
         times[f'(-{r},{r})'] = times_r
     return times
 
-def run_vsop87_checks(vsop87: VSOP87Ephemeris):
+def run_vsop87_checks(vsop87: VSOP87AEphemeris):
     """
     Runs checks from vsop87.chk for VSOP87A.
     """
@@ -60,8 +60,8 @@ def run_vsop87_checks(vsop87: VSOP87Ephemeris):
         pos, vel = vsop87.get_pos_vel(body, t)
         # The matrix is not applied in the test data so unapply it. 
         # The length unit in the test data is AU so convert from km to AU.
-        pos = np.linalg.inv(vsop87.matrix) @ pos / VSOP87Ephemeris.AU
-        vel = np.linalg.inv(vsop87.matrix) @ vel / VSOP87Ephemeris.AU
+        pos = np.linalg.inv(vsop87.matrix) @ pos / VSOP87AEphemeris.AU
+        vel = np.linalg.inv(vsop87.matrix) @ vel / VSOP87AEphemeris.AU
         error_pos = np.linalg.norm(pos-correct_pos) / np.linalg.norm(correct_pos)
         error_vel = np.linalg.norm(vel-correct_vel) / np.linalg.norm(correct_vel)
         errors_pos.append(error_pos)
@@ -156,7 +156,7 @@ def compare_pos_vel_functions(pos_vel, pos_vel_ref, num, print_header=True):
         print(f'{interval:>16}{str(err_0):>15}{str(err_stddev):>15}{str(err_1):>15}{f'{err_2:.0e}':>15}')
 
 def run_tests(test_num):
-    vsop87 = VSOP87Ephemeris(R'./json/vsop87a_raw.json')
+    vsop87 = VSOP87AEphemeris(R'./json/vsop87a_raw.json')
     mpp02_llr = MPP02Ephemeris(R'./json/mpp02_llr_raw.json')
     mpp02_405 = MPP02Ephemeris(R'./json/mpp02_405_raw.json')
 

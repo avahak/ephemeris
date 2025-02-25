@@ -12,7 +12,7 @@ import re
 
 import tools
 from testing import JPL_DE_ROUTES, compare_pos_vel_functions, test_planet_ephemeris_against_jpl_de
-from vsop87a_ephemeris import VSOP87Ephemeris
+from vsop87a_ephemeris import VSOP87AEphemeris
 
 MEAN_DISTANCE_FROM_SUN = {
     'MERCURY': 0.39, 
@@ -111,8 +111,8 @@ def show_truncation_error(obj_truncated, obj_raw):
     # the truncated series and JPL DE.
     test_num = 500
     with tools.jplephem_pos_vel(JPL_DE_EPHEMERIS_PATH) as jpl_pos_vel:
-        vsop87_raw = VSOP87Ephemeris(obj_raw)
-        vsop87_truncated = VSOP87Ephemeris(obj_truncated)
+        vsop87_raw = VSOP87AEphemeris(obj_raw)
+        vsop87_truncated = VSOP87AEphemeris(obj_truncated)
         for body_name in JPL_DE_ROUTES:
             if body_name not in obj_raw['bodies'].keys():
                 continue

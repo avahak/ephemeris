@@ -2,7 +2,7 @@ import numpy as np
 
 import tools
 
-class VSOP87Ephemeris:
+class VSOP87AEphemeris:
     """
     Computes planet positions and velocities w.r.t. the Sun using VSOP87A series.
     """
@@ -29,6 +29,9 @@ class VSOP87Ephemeris:
         """
         # Convert from centuries to millenia:
         t = 0.1 * t
+        t_pow = np.power(t, np.arange(6))
+        t_pow_p = np.array([k * t_pow[k-1] if k > 0 else 0.0 for k in range(6)])
+
         pos = np.zeros(3)
         vel = np.zeros(3)
         for group in self.bodies[body_name]:
@@ -46,13 +49,12 @@ class VSOP87Ephemeris:
             #     sum_pos += a * np.cos(b + c*t)
             #     sum_vel -= a * c * np.sin(b + c*t)
 
-            t_pow_alpha = np.power(t, alpha)
-            t_pow_alpha_p = alpha * np.power(t, alpha-1) if alpha > 0 else 0.0
-            pos[coord] += t_pow_alpha * sum_pos
-            vel[coord] += t_pow_alpha_p * sum_pos + t_pow_alpha * sum_vel
+            pos[coord] += t_pow[alpha] * sum_pos
+            vel[coord] += t_pow_p[alpha] * sum_pos + t_pow[alpha] * sum_vel
         return self.matrix @ pos * self.AU, self.matrix @ vel * self.AU / 365250.0
 
 if __name__ == '__main__':
-    vsop87 = VSOP87Ephemeris('./json/vsop87a_truncated_7.json')
-    p, v = vsop87.get_pos_vel('EARTH-MOON', 0.25)
-    print(p, v)
+    vsop87 = VSOP87AEphemeris('./json/vsop87a_raw.json')
+    # vsop87 = VSOP87AEphemeris('./json/vsop87a_truncated_7.json')
+    p, v = vsop87.get_pos_vel('EARTH-MOON', -5.25)
+    print(p.tolist(), v.tolist())

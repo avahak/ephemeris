@@ -13,8 +13,8 @@ class MPP02Ephemeris:
     Computes position and velocity of the Moon using ELP/MPP02.
     Units: km for position, km/Julian day for velocity.
     """
-    PC = np.array([0.10180391e-4, 0.47020439e-6, -0.5417367e-9, -0.2507948e-11, 0.463486e-14])
-    QC = np.array([-0.113469002e-3, 0.12372674e-6, 0.1265417e-8, -0.1371808e-11, -0.320334e-14])
+    PC = np.array([0.0, 0.10180391e-4, 0.47020439e-6, -0.5417367e-9, -0.2507948e-11, 0.463486e-14])
+    QC = np.array([0.0, -0.113469002e-3, 0.12372674e-6, 0.1265417e-8, -0.1371808e-11, -0.320334e-14])
     EP = 0.40909280422232897    # ~23.44 deg
 
     def __init__(self, source):
@@ -29,70 +29,12 @@ class MPP02Ephemeris:
         for group in self.groups:
             group['coeffs'] = np.array(group['coeffs']).reshape(-1, 6)
 
-    def get_pos(self, t: float):
-        """
-        Computes position only.
-        """
-        t_pow = np.power(t, np.arange(5))
-
-        v = np.zeros(3)
-        # Series terms have form c0 * t^\alpha * sin(c1 + c2*t + c3*t^2 + c4*t^3 + c5*t^4)
-        for group in self.groups:
-            coord = group['coord']
-            alpha = group['alpha']
-            coeffs = group['coeffs']
-
-            a = coeffs[:,1].copy()
-            for k in range(1, 5):
-                a += coeffs[:,k+1] * t_pow[k]
-            v[coord] += t_pow[alpha] * np.sum(coeffs[:,0] * np.sin(a))
-
-            # Same without numpy vectorization:
-            # for c in coeffs:
-            #     a = c[1]
-            #     for k in range(1, 5):
-            #         a += c[k+1] * t_pow[k]
-            #     v[coord] += c[0] * t_pow[alpha] * np.sin(a)
-
-        # Compute spherical coordinates and their derivatives for the mean ecliptic of date.
-        v[0] = v[0] * tools.ARCSEC + np.sum(self.W * t_pow)
-        v[1] = v[1] * tools.ARCSEC
-        v[2] = v[2] * 0.9999999498265191
-
-        # Change to cartesian coordinates
-        h = np.array([
-            v[2]*np.cos(v[1])*np.cos(v[0]), 
-            v[2]*np.cos(v[1])*np.sin(v[0]), 
-            v[2]*np.sin(v[1])
-        ])
-
-        # Next, rotate from mean ecliptic and equinox of date to mean ecliptic and equinox of J2000.0.
-        p = t * sum(self.PC * t_pow)
-        q = t * sum(self.QC * t_pow)
-
-        sc = np.sqrt(max(1.0 - p*p - q*q, 0.0))
-        pc1 = 1.0 - 2.0*p*p
-        qc1 = 1.0 - 2.0*q*q
-
-        pos = np.zeros(3)
-        pos[0] = pc1*h[0] + 2.0*p*q*h[1] + 2.0*p*sc*h[2]
-        pos[1] = 2.0*p*q*h[0] + qc1*h[1] - 2.0*q*sc*h[2]
-        pos[2] = -2.0*p*sc*h[0] + 2.0*q*sc*h[1] + (pc1+qc1-1.0)*h[2]
-
-        # Finally, rotate from mean ecliptic of J2000.0 to mean equator and equinox of J2000.0.
-        pos_equatorial = np.array([
-            pos[0], 
-            pos[1]*np.cos(self.EP) - pos[2]*np.sin(self.EP), 
-            pos[1]*np.sin(self.EP) + pos[2]*np.cos(self.EP)
-        ])
-
-        return pos_equatorial
-
     def get_pos_vel(self, t: float):
         """
         Computes position and velocity.
         """
-        t_pow = np.power(t, np.arange(5))
+        t_pow = np.power(t, np.arange(6))
+        t_pow_p = np.array([k * t_pow[k-1] if k > 0 else 0.0 for k in range(6)])
 
         v = np.zeros(3)
         vp = np.zeros(3)
@@ -101,7 +43,6 @@ class MPP02Ephemeris:
             coord = group['coord']
             alpha = group['alpha']
             coeffs = group['coeffs']
-            t_pow_alpha_p = alpha * t_pow[alpha-1] if alpha > 0 else 0.0
 
             a = coeffs[:,1].copy()
             ap = np.zeros(shape=a.shape)
@@ -111,7 +52,7 @@ class MPP02Ephemeris:
             c0_sin = np.sum(coeffs[:,0] * np.sin(a))
             c0_sin_p = np.sum(coeffs[:,0] * ap * np.cos(a))
             v[coord] += t_pow[alpha] * c0_sin
-            vp[coord] += t_pow_alpha_p * c0_sin + t_pow[alpha] * c0_sin_p
+            vp[coord] += t_pow_p[alpha] * c0_sin + t_pow[alpha] * c0_sin_p
 
             # Same without numpy vectorization:
             # for c in coeffs:
@@ -124,10 +65,10 @@ class MPP02Ephemeris:
             #     vp[coord] += c[0] * (t_pow_alpha_p * np.sin(a)  +  t_pow[alpha] * ap * np.cos(a))
 
         # Compute spherical coordinates and their derivatives for the mean ecliptic of date.
-        v[0] = v[0] * tools.ARCSEC + np.sum(self.W * t_pow)
+        v[0] = v[0] * tools.ARCSEC + np.sum(self.W * t_pow[:5])
         v[1] = v[1] * tools.ARCSEC
         v[2] = v[2] * 0.9999999498265191
-        vp[0] = vp[0] * tools.ARCSEC + sum([k*self.W[k]*t_pow[k-1] for k in range(1, 5)])
+        vp[0] = vp[0] * tools.ARCSEC + np.sum(self.W * t_pow_p[:5])
         vp[1] = vp[1] * tools.ARCSEC
 
         # Change to cartesian coordinates
@@ -143,10 +84,10 @@ class MPP02Ephemeris:
         ])
 
         # Next, rotate from mean ecliptic and equinox of date to mean ecliptic and equinox of J2000.0.
-        p = t * sum(self.PC * t_pow)
-        q = t * sum(self.QC * t_pow)
-        pp = sum([(k+1.0)*t_pow[k]*self.PC[k] for k in range(5)])
-        qp = sum([(k+1.0)*t_pow[k]*self.QC[k] for k in range(5)])
+        p = np.sum(self.PC * t_pow)
+        q = np.sum(self.QC * t_pow)
+        pp = np.sum(self.PC * t_pow_p)
+        qp = np.sum(self.QC * t_pow_p)
 
         sc = np.sqrt(max(1.0 - p*p - q*q, 0.0))
         pc1 = 1.0 - 2.0*p*p
@@ -185,5 +126,8 @@ class MPP02Ephemeris:
 
         return pos_equatorial, vel_equatorial / 36525.0
 
-# if __name__ == '__main__':
-#     pass
+if __name__ == '__main__':
+    mpp02 = MPP02Ephemeris('./json/mpp02_llr_raw.json')
+    # mpp02 = MPP02Ephemeris('./json/mpp02_llr_truncated_7.json')
+    p, v = mpp02.get_pos_vel(-5.25)
+    print(p.tolist(), v.tolist())
