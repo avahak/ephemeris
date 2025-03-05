@@ -5,14 +5,14 @@ errors against JPL DE ephemeris.
 """
 import numpy as np
 
-import tools
+import tools.misc as misc
 from vsop87a_ephemeris import VSOP87AEphemeris
 from mpp02_ephemeris import MPP02Ephemeris
 
 JPL_DE_EPHEMERIS_PATH = R'd:/resources/astro/de/de441.bsp'
 
 # ecliptic to equatorial J2000.0
-ROT_ECL_EQU = tools.rotation_matrix(0, 84381.448/3600*np.pi/180.0)
+ROT_ECL_EQU = misc.rotation_matrix(0, 84381.448/3600*np.pi/180.0)
 
 JPL_DE_ROUTES = {
     'MERCURY': [10, 0, 1, 199],
@@ -34,7 +34,7 @@ def generate_test_times(num):
     (Julian centuries since J2000.0) for each.
     """
     times = {}
-    interval_radii = [15000, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 30]
+    interval_radii = [15000, 10000, 5000, 3000, 2000, 1000, 500, 200, 100, 50, 30]
     for r in interval_radii:
         times_r = []
         for k in range(num):
@@ -48,7 +48,7 @@ def run_vsop87_checks(vsop87: VSOP87AEphemeris):
     """
     Runs checks from vsop87.chk for VSOP87A.
     """
-    tests = tools.load_json(R'./json/vsop87a_tests.json')
+    tests = misc.load_json(R'./json/vsop87a_tests.json')
     errors_pos = []
     errors_vel = []
     for test in tests:
@@ -66,8 +66,8 @@ def run_vsop87_checks(vsop87: VSOP87AEphemeris):
         error_vel = np.linalg.norm(vel-correct_vel) / np.linalg.norm(correct_vel)
         errors_pos.append(error_pos)
         errors_vel.append(error_vel)
-    print('Code port error in pos:', tools.stats(np.array(errors_pos)))
-    print('Code port error in vel:', tools.stats(np.array(errors_vel)))
+    print('Code port error in pos:', misc.stats(np.array(errors_pos)))
+    print('Code port error in vel:', misc.stats(np.array(errors_vel)))
 
 def run_mpp02_tests(mpp02_llr, mpp02_405):
     """
@@ -100,8 +100,8 @@ def run_mpp02_tests(mpp02_llr, mpp02_405):
         err_v = np.linalg.norm(v-v0) / np.linalg.norm(v0)
         errors_p.append(err_p)
         errors_v.append(err_v)
-    print('Code port error in pos:', tools.stats(np.array(errors_p)))
-    print('Code port error in vel:', tools.stats(np.array(errors_v)))
+    print('Code port error in pos:', misc.stats(np.array(errors_p)))
+    print('Code port error in vel:', misc.stats(np.array(errors_v)))
 
 def test_planet_ephemeris_against_jpl_de(planet_ephemeris, jpl_pos_vel, num):
     """
@@ -110,7 +110,7 @@ def test_planet_ephemeris_against_jpl_de(planet_ephemeris, jpl_pos_vel, num):
     multiple time intervals.
     """
     test_times = generate_test_times(num)
-    print(f'{'BODY':>10}{'INTERVAL':>16}{'MEAN_POS_ERR':>15}{'STDDEV_POS_ERR':>15}{'MAX_POS_ERR':>15}{'MAX_VEL_ERR':>15}')
+    print(f'{'BODY':>10}{'INTERVAL':>16}{'MEAN_POS_ERR':>15}{'STD_POS_ERR':>15}{'MAX_POS_ERR':>15}{'MAX_VEL_ERR':>15}')
     for body_name in JPL_DE_ROUTES.keys():
         if body_name in ['PLUTO', 'EMB-MOON', 'EMB-EARTH']:
             continue
@@ -126,11 +126,11 @@ def test_planet_ephemeris_against_jpl_de(planet_ephemeris, jpl_pos_vel, num):
                 error_v = np.linalg.norm(v-v0) / np.linalg.norm(v0)
                 errors_p.extend([error_p_sun, error_p_earth] if body_name != 'EARTH-MOON' else [error_p_sun])
                 errors_v.append(error_v)
-            err_0 = tools.dms_string(tools.stats(np.array(errors_p))['mean'], 2)
-            err_stddev = tools.dms_string(tools.stats(np.array(errors_p))['stdDev'], 2)
-            err_1 = tools.dms_string(tools.stats(np.array(errors_p))['max'], 2)
-            err_2 = tools.stats(np.array(errors_v))['max']
-            print(f'{body_name:>10}{interval:>16}{str(err_0):>15}{str(err_stddev):>15}{str(err_1):>15}{f'{err_2:.0e}':>15}')
+            err_0 = misc.dms_string(misc.stats(np.array(errors_p))['mean'], 2)
+            err_std = misc.dms_string(misc.stats(np.array(errors_p))['std'], 2)
+            err_1 = misc.dms_string(misc.stats(np.array(errors_p))['max'], 2)
+            err_2 = misc.stats(np.array(errors_v))['max']
+            print(f'{body_name:>10}{interval:>16}{str(err_0):>15}{str(err_std):>15}{str(err_1):>15}{f'{err_2:.0e}':>15}')
 
 def compare_pos_vel_functions(pos_vel, pos_vel_ref, num, print_header=True):
     """
@@ -138,7 +138,7 @@ def compare_pos_vel_functions(pos_vel, pos_vel_ref, num, print_header=True):
     """
     test_times = generate_test_times(num)
     if print_header:
-        print(f'{'INTERVAL':>16}{'MEAN_POS_ERR':>15}{'STDDEV_POS_ERR':>15}{'MAX_POS_ERR':>15}{'MAX_VEL_ERR':>15}')
+        print(f'{'INTERVAL':>16}{'MEAN_POS_ERR':>15}{'STD_POS_ERR':>15}{'MAX_POS_ERR':>15}{'MAX_VEL_ERR':>15}')
     for interval in test_times.keys():
         errors_p = []
         errors_v = []
@@ -149,11 +149,11 @@ def compare_pos_vel_functions(pos_vel, pos_vel_ref, num, print_header=True):
             err_v = np.linalg.norm(v-v0) / np.linalg.norm(v0)
             errors_p.append(err_p)
             errors_v.append(err_v)
-        err_0 = tools.dms_string(tools.stats(np.array(errors_p))['mean'], 2)
-        err_stddev = tools.dms_string(tools.stats(np.array(errors_p))['stdDev'], 2)
-        err_1 = tools.dms_string(tools.stats(np.array(errors_p))['max'], 2)
-        err_2 = tools.stats(np.array(errors_v))['max']
-        print(f'{interval:>16}{str(err_0):>15}{str(err_stddev):>15}{str(err_1):>15}{f'{err_2:.0e}':>15}')
+        err_0 = misc.dms_string(misc.stats(np.array(errors_p))['mean'], 2)
+        err_std = misc.dms_string(misc.stats(np.array(errors_p))['std'], 2)
+        err_1 = misc.dms_string(misc.stats(np.array(errors_p))['max'], 2)
+        err_2 = misc.stats(np.array(errors_v))['max']
+        print(f'{interval:>16}{str(err_0):>15}{str(err_std):>15}{str(err_1):>15}{f'{err_2:.0e}':>15}')
 
 def run_tests(test_num):
     vsop87 = VSOP87AEphemeris(R'./json/vsop87a_raw.json')
@@ -166,7 +166,7 @@ def run_tests(test_num):
     print('\n', '-'*20, 'ELP/MPP02: CODE PORT TESTS AGAINST FORTRAN OUTPUT', '-'*20)
     run_mpp02_tests(mpp02_llr, mpp02_405)
 
-    with tools.jplephem_pos_vel(JPL_DE_EPHEMERIS_PATH) as jpl_pos_vel:
+    with misc.jplephem_pos_vel(JPL_DE_EPHEMERIS_PATH) as jpl_pos_vel:
         print('\n', '-'*20, 'RAW VSOP87A ERROR AGAINST DE441', '-'*20)
         test_planet_ephemeris_against_jpl_de(vsop87.get_pos_vel, jpl_pos_vel, test_num)
 
@@ -175,4 +175,4 @@ def run_tests(test_num):
         compare_pos_vel_functions(mpp02_llr.get_pos_vel, jpl_moon_pos_vel, test_num)
 
 if __name__ == '__main__':
-    run_tests(100)
+    run_tests(1000)

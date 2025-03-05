@@ -17,10 +17,6 @@ class MPP02Ephemeris {
     constructor(source) {
         this.W = source['W'];
         this.groups = source['groups'];
-
-        Object.values(this.groups).forEach((group) => {
-            group.coeffs = new Float64Array(group.coeffs);
-        });
     }
 
     /**
@@ -99,7 +95,7 @@ class MPP02Ephemeris {
         vel[2] = -2*p*sc*hp[0] + 2*q*sc*hp[1] + (pc1+qc1-1)*hp[2];
         vel[2] += -2*pc2*h[0] + 2*qc2*h[1] - 2*d2p*h[2];
 
-        // Finally, rotate from mean ecliptic of J2000.0 to mean equator and equinox of J2000.0.
+        // Finally, rotate from mean ecliptic and equinox of J2000.0 to mean equator and equinox of J2000.0.
         const posEquatorial = matrixMult(this.ECL_TO_EQU, pos);
         const velEquatorial = matrixMult(this.ECL_TO_EQU, vel);
 

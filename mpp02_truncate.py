@@ -5,10 +5,10 @@ to take less space in json file.
 
 import numpy as np
 import json
-import re
 
-import tools
+import tools.misc as misc
 from mpp02_ephemeris import MPP02Ephemeris
+from tools.round_compact import FormattedFloat, FormattedFloatEncoder, round_compact_in_interval
 from testing import compare_pos_vel_functions
 
 T_MAX = 30.0        # Assumption for max|t| to use in truncation (default 30.0)
@@ -16,7 +16,7 @@ THRESHOLD_EXP = 7
 THRESHOLD = np.power(10.0, -THRESHOLD_EXP)  # maximum threshold for each modification
 # (T_MAX,THRESHOLD_EXP)=(30,7): ~1000 terms, good accuracy (often error<1")
 
-def simplify(c: list[float], alpha: int, limit: float):
+def simplify(c: list[float], alpha: int, coord: int):
     """
     Question to ask here is: how much can we simplify a component (like c[3]) while keeping
     the resulting change in the term below given limit. Each component is changed this way
@@ -32,13 +32,18 @@ def simplify(c: list[float], alpha: int, limit: float):
     c5: limit * T_MAX^(-4-alpha) / |c0|
     """
     if c[0] == 0.0:
-        return [0, 0, 0, 0, 0, 0]
-    leeway0 = limit * np.power(T_MAX, -alpha)
-    c_new = [tools.simplest_float_in(c[0], c[0]-leeway0, c[0]+leeway0)]
-    for k in range(5):
-        leeway = leeway0 * np.power(T_MAX, -k) / abs(c[0])
-        c_new.append(tools.simplest_float_in(c[k+1], c[k+1]-leeway, c[k+1]+leeway))
-    return [tools.convert_integer_floats(c) for c in c_new]
+        ff0 = FormattedFloat('0')
+        return [ff0, ff0, ff0, ff0, ff0, ff0]
+    # For coords 0,1 (lon,lat) the unit is arcsec and for 2 (r) it is km.
+    # We normalize here by reducing to unit sphere.
+    limit = THRESHOLD/misc.ARCSEC if coord != 2 else THRESHOLD*385000.0
+    leeway0 = limit / np.power(T_MAX, alpha)
+    c_new = []
+    for k in range(6):
+        leeway = leeway0 if k == 0 else leeway0 * np.power(T_MAX, 1-k) / abs(c[0])
+        rounded = round_compact_in_interval(c[k], c[k]-leeway, c[k]+leeway)
+        c_new.append(rounded)
+    return c_new
 
 def count_terms(obj, report_all=False):
     counts = {}
@@ -56,11 +61,8 @@ def truncate_series(obj_raw):
         coeffs = np.array(group['coeffs']).reshape(-1, 6)
         coeffs_truncated = []
         for c in coeffs:
-            # For coords 0,1 (lon,lat) the unit is arcsec and for 2 (r) it is km.
-            # We normalize here by reducing to unit sphere.
-            limit = THRESHOLD/tools.ARCSEC if coord != 2 else THRESHOLD*384399.0
-            c_new = simplify(c, alpha, limit)
-            if c_new[0] == 0:
+            c_new = simplify(c, alpha, coord)
+            if float(c_new[0]) == 0.0:
                 continue
             coeffs_truncated.extend(c_new)
         if coeffs_truncated:
@@ -73,19 +75,20 @@ def truncate_series(obj_raw):
 def write_data(obj, file_path: str):
     # Write the truncated json file
     with open(file_path, 'w') as f:
-        json_string = json.dumps(obj, indent=None, separators=(',', ':'))
-        json_string = re.sub(r'(\d+\.?\d*)e-0(\d+)', r'\1e-\2', json_string)
-        f.write(json_string)
-    print(f'Wrote file: {file_path} ({round(np.ceil(len(json_string)/1024))} kb).')
+        json_str = json.dumps(obj, cls=FormattedFloatEncoder, indent=None, separators=(',', ':'))
+        json_str = FormattedFloatEncoder.apply_formatting(json_str)
+        f.write(json_str)
+    print(f'Wrote file: {file_path} ({round(np.ceil(len(json_str)/1024))} kb).')
+    return json.loads(json_str)
 
 def truncate_and_show_error():
-    test_num = 200
-    with tools.jplephem_pos_vel(R'd:/resources/astro/de/de441.bsp') as jpl_pos_vel:
+    test_num = 5000
+    with misc.jplephem_pos_vel(R'd:/resources/astro/de/de441.bsp') as jpl_pos_vel:
         json_raw_path = './json/mpp02_llr_raw.json'
-        obj_raw = tools.load_json(json_raw_path)
+        obj_raw = misc.load_json(json_raw_path)
         obj_truncated = truncate_series(obj_raw)
         output_json_path = f'./json/mpp02_llr_truncated_{THRESHOLD_EXP}.json'
-        write_data(obj_truncated, output_json_path)
+        obj_truncated = write_data(obj_truncated, output_json_path)
 
         # Show errors in truncation
         mpp02_raw = MPP02Ephemeris(obj_raw)

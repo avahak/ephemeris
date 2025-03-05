@@ -8,10 +8,10 @@ so we ignore EARTH and do not write it in the truncated json file.
 """
 import numpy as np
 import json
-import re
 
-import tools
+import tools.misc as misc
 from testing import JPL_DE_ROUTES, compare_pos_vel_functions, test_planet_ephemeris_against_jpl_de
+from tools.round_compact import FormattedFloat, FormattedFloatEncoder, round_compact_in_interval
 from vsop87a_ephemeris import VSOP87AEphemeris
 
 MEAN_DISTANCE_FROM_SUN = {
@@ -41,24 +41,26 @@ JPL_DE_EPHEMERIS_PATH = R'd:/resources/astro/de/de441.bsp'
 
 def simplify(a: float, b: float, c: float, limit: float, alpha: int):
     """
-    Theory here: Assume |t|<=T_MAX. The terms in the series have form 
+    Math here: Assume |t|<=T_MAX. The terms in the series have form 
     t^alpha * a * cos(b + c*t),
     where a, b, c can be simplified. How much can each of the terms a, b, c be modified
     (replacing a with a' with |a-a'|<delta_a etc.) while affecting the term less than the limit? 
     Over all possible |t|<=T_MAX the equations for upper bounds for modifications delta are 
         delta_a <= limit / T_MAX^alpha
         delta_b * |a| <= limit / T_MAX^alpha
-        delta_c * |a| <= limit / T_MAX^alpha
-    So we can take delta_a=limit/T_MAX^alpha, delta_b=delta_c=THRESHOLD/|a|/T_MAX^alpha.
+        delta_c * |a| <= limit / T_MAX^(alpha+1)
+    So we can take delta_a=limit/T_MAX^alpha, delta_b=delta_a/|a|, delta_c=delta_a/|a|/T_MAX.
     This function returns the simplest a',b',c' found in the allowed intervals.
     """
     if a == 0.0:
-        return 0, 0, 0
+        ff0 = FormattedFloat('0')
+        return ff0, ff0, ff0
     delta_a = limit / np.power(T_MAX, alpha)
-    delta_bc = delta_a / abs(a)
-    ap = tools.convert_integer_floats(tools.simplest_float_in(a, a-delta_a, a+delta_a))
-    bp = tools.convert_integer_floats(tools.simplest_float_in(b, b-delta_bc, b+delta_bc))
-    cp = tools.convert_integer_floats(tools.simplest_float_in(c, c-delta_bc, c+delta_bc))
+    delta_b = delta_a / abs(a)
+    delta_c = delta_a / abs(a) / T_MAX
+    ap = round_compact_in_interval(a, a-delta_a, a+delta_a)
+    bp = round_compact_in_interval(b, b-delta_b, b+delta_b)
+    cp = round_compact_in_interval(c, c-delta_c, c+delta_c)
     return ap, bp, cp
 
 def truncate_series(obj_raw): 
@@ -78,7 +80,7 @@ def truncate_series(obj_raw):
             coeffs_truncated = []
             for a, b, c in coeffs:
                 ap, bp, cp = simplify(a, b, c, body_limit, alpha)
-                if ap == 0:
+                if float(ap) == 0.0:
                     continue
 
                 coeffs_truncated.extend([ap, bp, cp])
@@ -100,17 +102,17 @@ def truncate_series(obj_raw):
 def write_truncated_json(obj_truncated):  
     # Writes the truncated json file
     with open(OUTPUT_JSON_PATH, 'w') as f:
-        json_string = json.dumps(obj_truncated, indent=None, separators=(',', ':'))
-        # Remove leading zeros in negative exponents of scientific notation floats, HACKY!
-        json_string = re.sub(r'(\d+\.?\d*)e-0(\d+)', r'\1e-\2', json_string)
-        f.write(json_string)
-    print(f'Wrote file: {OUTPUT_JSON_PATH} ({round(np.ceil(len(json_string)/1024))} kb).')
+        json_str = json.dumps(obj_truncated, cls=FormattedFloatEncoder, indent=None, separators=(',', ':'))
+        json_str = FormattedFloatEncoder.apply_formatting(json_str)
+        f.write(json_str)
+    print(f'Wrote file: {OUTPUT_JSON_PATH} ({round(np.ceil(len(json_str)/1024))} kb).')
+    return json.loads(json_str)
 
 def show_truncation_error(obj_truncated, obj_raw): 
     # Show error between truncated series and the raw series, and error between
     # the truncated series and JPL DE.
     test_num = 500
-    with tools.jplephem_pos_vel(JPL_DE_EPHEMERIS_PATH) as jpl_pos_vel:
+    with misc.jplephem_pos_vel(JPL_DE_EPHEMERIS_PATH) as jpl_pos_vel:
         vsop87_raw = VSOP87AEphemeris(obj_raw)
         vsop87_truncated = VSOP87AEphemeris(obj_truncated)
         for body_name in JPL_DE_ROUTES:
@@ -126,9 +128,9 @@ def show_truncation_error(obj_truncated, obj_raw):
 
 def truncate_and_test():
     print('-'*20, 'Truncating series, writing truncated json', '-'*20)
-    obj_raw = tools.load_json(INPUT_RAW_JSON_PATH)
+    obj_raw = misc.load_json(INPUT_RAW_JSON_PATH)
     obj_truncated = truncate_series(obj_raw)
-    write_truncated_json(obj_truncated)
+    obj_truncated = write_truncated_json(obj_truncated)
 
     show_truncation_error(obj_truncated, obj_raw)
 

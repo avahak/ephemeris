@@ -3,44 +3,113 @@
 import contextlib
 import numpy as np
 import json
+import time
+import functools
 from jplephem.spk import SPK
 
 DEG = np.pi / 180.0
 ARCSEC = np.pi / 180.0 / 3600
 
-def simplest_float_in(x: float, a: float, b: float):
-    """
-    Finds number x0 in (a,b) with simplest decimal expansion, i.e. least number 
-    of significant digits. If there are multiple, picks the one closest to x.
-    BUG Unexpected behavior in situations like (x,a,b)=(1,0.5,10000), needs adjustment.
-    """
-    if (x == 0.0) or (a <= 0.0 and b >= 0.0):
-        return 0.0
-    # If too much precision is needed, just return x
-    if (b-a) / abs(x) < 1.0e-10:
-        return x
-    if x < 0.0:
-        return -simplest_float_in(-x, -b, -a)
-    # Now: 0 < a < x < b
+# def _json_structure(data, indent, max_iterable_entries=4):
+#     # Helper function for json_structure_string
+#     lines = []
+#     pad = ' ' * 4
+#     prefix = pad * indent
 
-    mag = np.floor(np.log10(b - a))
-    scale = np.power(10, mag)
-    scale10 = 10 * scale
-    # Now: scale <= b-a < scale10
-    sig = 12
-    x1 = round_sig(np.floor(x / scale10) * scale10, sig)
-    x2 = round_sig(np.ceil(x / scale10) * scale10, sig)
-    x3 = round_sig(np.floor(x / scale) * scale, sig)
-    x4 = round_sig(np.ceil(x / scale) * scale, sig)
-    if x1 >= a and x1 <= b:
-        return x1
-    if x2 >= a and x2 <= b:
-        return x2
-    if x3 >= a and x3 <= b and x4 >= a and x4 <= b:
-        return x3 if abs(x-x3) <= abs(x-x4) else x4     # x0 is closer of x3, x4 to x
-    if x3 >= a and x3 <= b:
-        return x3
-    return x4
+#     if isinstance(data, dict):
+#         lines.append(f'{prefix}- dict of length {len(data)}')
+#         for count, (key, value) in enumerate(data.items()):
+#             if (count >= max_iterable_entries-1) and (count < len(data)-1):
+#                 if count == max_iterable_entries-1:
+#                     lines.append(f'{prefix}- ...(items {max_iterable_entries-1}-{len(data)-2})')
+#                 continue
+#             sublines = _json_structure(value, indent + 1, max_iterable_entries)
+#             if isinstance(sublines, str):
+#                 lines.append(f'{prefix}- {key} {sublines}')
+#             else:
+#                 lines.append(f'{prefix}- {key}')
+#                 lines.extend(sublines)
+
+#     elif isinstance(data, list) and data:
+#         if not data:
+#             return 'list (empty)'
+        
+#         is_homogenous = True
+#         first = json_structure_string(data[0])
+#         for entry in data[1:]:
+#             mask = json_structure_string(entry)
+#             if mask != first:
+#                 is_homogenous = False
+#                 break
+#         if is_homogenous:
+#             sublines = _json_structure(data[0], indent + 1, max_iterable_entries)
+#             s = f'{prefix}- list (homogenous of length {len(data)}) of form'
+#             if isinstance(sublines, str):
+#                 lines.append(f'{s} {sublines}')
+#             else:
+#                 lines.append(f'{s}')
+#                 lines.extend(sublines)
+#         else:
+#             lines.append(f'{prefix}- list (length {len(data)})')
+#             for index, entry in enumerate(data):
+#                 if (index >= max_iterable_entries-1) and (index < len(data)-1):
+#                     if index == max_iterable_entries-1:
+#                         lines.append(f'{prefix}- ...(items {max_iterable_entries-1}-{len(data)-2})')
+#                     continue
+#                 s = f'{prefix}- item {index}'
+#                 sublines = _json_structure(entry, indent + 1, max_iterable_entries)
+#                 if isinstance(sublines, str):
+#                     lines.append(f'{s} {sublines}')
+#                 else:
+#                     lines.append(f'{s}')
+#                     lines.extend(sublines)
+
+#     elif isinstance(data, str):
+#         return 'str'
+#     elif isinstance(data, int):
+#         return 'int'
+#     elif isinstance(data, float):
+#         return 'float'
+#     elif isinstance(data, bool):
+#         return 'bool'
+#     elif data is None:
+#         return 'null'
+#     else:
+#         return 'unknown'
+#     return lines
+
+# def json_structure_string(data):
+#     """
+#     Writes out the general structure of a (json) object. 
+#     Scuffy, for entertainment purposes only!
+#     """
+#     structure = _json_structure(data, 0, 4)
+#     if isinstance(structure, list):
+#         return '\n'.join(structure)
+#     return str(structure)
+
+def format_time(t: float) -> str:
+    if t >= 3600.0:
+        hours = int(t / 3600.0)
+        minutes = int((t % 3600.0) / 60.0)
+        return f'{hours}h {minutes}min'
+    elif t >= 60.0:
+        minutes = int(t / 60.0)
+        seconds = int(t % 60.0)
+        return f'{minutes}min {seconds}s'
+    return f'{t:.2g}s'
+
+def time_it(f):
+    """
+    Writes elapsed time for function execution.
+    """
+    @functools.wraps(f)
+    def wrapper(*pos_args, **keyw_args):
+        time0 = time.perf_counter()
+        return_value = f(*pos_args, **keyw_args)
+        print(f'Function {f.__name__} took {format_time(time.perf_counter()-time0)}.')
+        return return_value
+    return wrapper
 
 def cartesian_from_spherical(r, theta, phi):
     """
@@ -87,15 +156,14 @@ def stats(v: np.ndarray):
     return {
         'n': v.size,
         'mean': v.mean(),
-        'stdDev': v.std(),
+        'std': v.std(),
         'min': v.min(),
         'max': v.max()
     }
 
-def dms_string(x: float, sig_figs: int=2) -> str:
-    # NOTE significant figures is not really well defined here.
+def dms_string(x: float, arcsec_digits=0) -> str:
     if x < 0.0:
-        return f'-{dms_string(-x, sig_figs)}'
+        return f'-{dms_string(-x, arcsec_digits)}'
     total_degrees = x * 180.0 / np.pi
     degrees = int(total_degrees)
     remainder = (total_degrees - degrees) * 60 
@@ -109,7 +177,7 @@ def dms_string(x: float, sig_figs: int=2) -> str:
         arcmin_str = f"{arcminutes}'"
     else:
         arcmin_str = ''
-    arcsec_str = f'{round_sig(arcseconds, sig_figs)}\"'
+    arcsec_str = f'{arcseconds:.{arcsec_digits}f}\"'
     return ''.join([deg_str, arcmin_str, arcsec_str])
     # return ' '.join(filter(None, [deg_str, arcmin_str, arcsec_str]))
 

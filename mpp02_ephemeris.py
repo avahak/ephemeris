@@ -6,7 +6,7 @@ ELP/MMP02 article: Lunar solution ELP, version ELP/MPP02, Jean Chapront and Gera
 """
 import numpy as np
 
-import tools
+import tools.misc as misc
 
 class MPP02Ephemeris:
     """
@@ -15,14 +15,14 @@ class MPP02Ephemeris:
     """
     PC = np.array([0.0, 0.10180391e-4, 0.47020439e-6, -0.5417367e-9, -0.2507948e-11, 0.463486e-14])
     QC = np.array([0.0, -0.113469002e-3, 0.12372674e-6, 0.1265417e-8, -0.1371808e-11, -0.320334e-14])
-    ECL_TO_EQU = tools.rotation_matrix(0, 84381.448 * tools.ARCSEC)  # angle ~23.44 deg
+    ECL_TO_EQU = misc.rotation_matrix(0, 84381.448 * misc.ARCSEC)  # angle ~23.44 deg
 
     def __init__(self, source):
         """
         Source can be file path to json file or object loaded from the json file.
         """
         if isinstance(source, str):
-            source = tools.load_json(source)
+            source = misc.load_json(source)
         self.W = source['W']
         self.groups = source['groups']
         # Convert coeffs arrays to numpy arrays.
@@ -55,11 +55,11 @@ class MPP02Ephemeris:
             vp[coord] += t_pow_p[alpha] * c0_sin + t_pow[alpha] * c0_sin_p
 
         # Compute spherical coordinates and their derivatives for the mean ecliptic of date.
-        v[0] = v[0]*tools.ARCSEC + np.sum(self.W * t_pow[:5])
-        v[1] *= tools.ARCSEC
+        v[0] = v[0]*misc.ARCSEC + np.sum(self.W * t_pow[:5])
+        v[1] *= misc.ARCSEC
         v[2] *= 0.9999999498265191
-        vp[0] = vp[0]*tools.ARCSEC + np.sum(self.W * t_pow_p[:5])
-        vp[1] *= tools.ARCSEC
+        vp[0] = vp[0]*misc.ARCSEC + np.sum(self.W * t_pow_p[:5])
+        vp[1] *= misc.ARCSEC
         vp[2] *= 0.9999999498265191
 
         # Change to cartesian coordinates
@@ -101,14 +101,14 @@ class MPP02Ephemeris:
         vel[2] = -2.0*p*sc*hp[0] + 2.0*q*sc*hp[1] + (pc1+qc1-1.0)*hp[2] 
         vel[2] += -2.0*pc2*h[0] + 2.0*qc2*h[1] - 2.0*d2p*h[2]
 
-        # Finally, rotate from mean ecliptic of J2000.0 to mean equator and equinox of J2000.0.
+        # Finally, rotate from mean ecliptic and equinox of J2000.0 to mean equator and equinox of J2000.0.
         pos_equatorial = self.ECL_TO_EQU @ pos
         vel_equatorial = self.ECL_TO_EQU @ vel
 
         return pos_equatorial, vel_equatorial / 36525.0
 
 if __name__ == '__main__':
-    mpp02 = MPP02Ephemeris('./json/mpp02_llr_raw.json')
-    # mpp02 = MPP02Ephemeris('./json/mpp02_llr_truncated_7.json')
+    # mpp02 = MPP02Ephemeris('./json/mpp02_llr_raw.json')
+    mpp02 = MPP02Ephemeris('./json/mpp02_llr_truncated_7.json')
     p, v = mpp02.get_pos_vel(-5.25)
     print(p.tolist(), v.tolist())

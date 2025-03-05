@@ -5,7 +5,7 @@ output of the series and stores the output in another json file.
 """
 import json
 
-from fixed_length_reader import FixedLengthReader
+from tools.fixed_length_reader import FixedLengthReader
 
 INPUT_DIRECTORY = R'd:/resources/astro/vsop87'
 TEST_OUTPUT_PATH = R'./json/vsop87a_tests.json'
@@ -68,7 +68,7 @@ def load_raw_data():
     # Reads coefficients from the input file
     bodies = {}
     term_count = {}
-    reader = FixedLengthReader('3,i1,i1,10,12i3,x1,2f18,2f14,f20')
+    reader = FixedLengthReader('3,2i1,10,12i3,f15,2f18,f14,f20')
     for body_name, (_, file_name) in VSOP87_NAME_INDEXING.items():
         with open(f'{INPUT_DIRECTORY}/{file_name}', 'r') as f:
             for line in f:

@@ -11,7 +11,7 @@ ftp://cyrano-se.obspm.fr/pub/2_lunar_solutions/2_elpmpp02/
 import numpy as np
 import json
 
-from fixed_length_reader import FixedLengthReader
+from tools.fixed_length_reader import FixedLengthReader
 
 RAD = 648000.0 / np.pi
 DEG = np.pi / 180.0

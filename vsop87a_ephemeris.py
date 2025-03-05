@@ -1,6 +1,6 @@
 import numpy as np
 
-import tools
+import tools.misc as misc
 
 class VSOP87AEphemeris:
     """
@@ -14,7 +14,7 @@ class VSOP87AEphemeris:
         the json object itself.
         """
         if isinstance(source, str):
-            source = tools.load_json(source)
+            source = misc.load_json(source)
         self.bodies = source['bodies']
         # Reshape the coefficients from (n,) to (n/3,3)
         for body in self.bodies.values():
@@ -47,7 +47,7 @@ class VSOP87AEphemeris:
         return self.matrix @ pos * self.AU, self.matrix @ vel * self.AU / 365250.0
 
 if __name__ == '__main__':
-    vsop87 = VSOP87AEphemeris('./json/vsop87a_raw.json')
-    # vsop87 = VSOP87AEphemeris('./json/vsop87a_truncated_7.json')
+    # vsop87 = VSOP87AEphemeris('./json/vsop87a_raw.json')
+    vsop87 = VSOP87AEphemeris('./json/vsop87a_truncated_7.json')
     p, v = vsop87.get_pos_vel('EARTH-MOON', -5.25)
     print(p.tolist(), v.tolist())

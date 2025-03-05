@@ -13,12 +13,6 @@ class VSOP87AEphemeris {
     constructor(source) {
         this.bodies = source['bodies'];
         this.matrix = source['matrix'];
-
-        Object.values(this.bodies).forEach((body) => {
-            body.forEach((group) => {
-                group.coeffs = new Float64Array(group.coeffs);
-            });
-        });
     }
 
     /**

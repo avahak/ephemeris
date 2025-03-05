@@ -1,9 +1,9 @@
 class FixedLengthReader:
     """
-    Reads files with fixed length format.
-    Usage example: 
+    Reads files with fixed length format. The format string is similar, but not the same,
+    as Fortran format. Usage example: 
     ```
-    reader = FixedLengthReader('3,i1,i1,10,12i3,x1,2f18,2f14,f20')
+    reader = FixedLengthReader('3,2i1,10,12i3,f15,2f18,f14,f20')
     coord, alpha, *a_coeffs, s, k, a, b, c = reader.read(line)
     ```
     """
@@ -95,7 +95,7 @@ class FixedLengthReader:
 
 def _test():
     line = ' 1932   14  0  0  1  0 -1  0  0  0  0  0  0  0 -0.00000104352     0.00000676414     0.00000684416 1.30699021227    5753.38488489680 '
-    reader = FixedLengthReader('3,i1,i1,10,12i3,x1,2f18,2f14,f')
+    reader = FixedLengthReader('3,2i1,10,12i3,f15,2f18,f14,f20')
     v = reader.read(line)
     print(v)
 
