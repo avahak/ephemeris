@@ -10,8 +10,8 @@ import numpy as np
 
 class FormattedFloat:
     """
-    Stores a specific string representation for a float. 
-    The value as float is still `float(repr)`.
+    Stores a specific string representation `as_str` for a float. 
+    The value as float is still `float(a_str)`.
     """
     ZERO: "FormattedFloat" = None    # Assigned to '0' after
 
@@ -185,13 +185,11 @@ def round_compact_in_interval(x: float, a: float, b: float) -> FormattedFloat:
     """
     if (a > x) or (x > b):
         raise ValueError('Invalid parameters: a<=x<=b is not satisfied.')
-    if (x == 0.0) or (a <= 0.0 and b >= 0.0):
-        return FormattedFloat.ZERO
-    # Now: a<=x<=b, x!=0
+    # Now a<=x<=b
     best_found = FormattedFloat(str(x))
-    for sig_figs in range(17, 0, -1):
+    for sig_figs in range(17, -1, -1):
         x_round = round_compact(x, sig_figs)
-        if (x_round.as_float >= a) and (x_round.as_float <= b) and (len(x_round) < len(best_found)):
+        if (float(x_round) >= a) and (float(x_round) <= b) and (len(x_round) < len(best_found)):
             best_found = x_round
     return best_found
 

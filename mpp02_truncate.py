@@ -1,5 +1,5 @@
 """
-Truncates ELP/MPP02 series by rounding coefficients anddropping small terms 
+Truncates ELP/MPP02 series by rounding coefficients and dropping small terms 
 to take less space in json file.
 """
 
@@ -17,7 +17,7 @@ T_MAX = 10.0
 MAX_ERROR_PER_CHAR = {
     'small': 5.0e-8,
     'medium': 2.0e-9,
-    'large': 5.0e-11
+    'large': 4.0e-11
 }
 
 # The series gives lon (coord 0) and lat (coord 1) in arcsec, and r (coord 2) in km.
@@ -89,7 +89,13 @@ def truncate_series(obj_raw, size):
         if coeffs_truncated:
             groups_truncated.append({ 'coord': coord, 'alpha': alpha, 'coeffs': coeffs_truncated })
     comment = obj_raw['_comment'] + f', truncated with {T_MAX=}, {MAX_ERROR_PER_CHAR[size]=}'
-    obj = { '_comment': comment, 'W': obj_raw['W'], 'groups': groups_truncated }
+    obj = { 
+        '_comment': comment, 
+        'W': obj_raw['W'], 
+        'PC': obj_raw['PC'], 
+        'QC': obj_raw['QC'], 
+        'groups': groups_truncated 
+    }
     print(f'Truncated from {count_terms(obj_raw)} ({count_terms(obj_raw, True)})\n to {count_terms(obj)} ({count_terms(obj, True)})')
     return obj
 

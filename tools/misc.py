@@ -137,14 +137,6 @@ def round_sig(x: float, sig_figs: int) -> float:
     scale = np.power(10, sig_figs - magnitude - 1)
     return np.round(x * scale) / scale
 
-def convert_integer_floats(obj):
-    """
-    Converts floats that are also integers to integer type
-    """
-    if isinstance(obj, float) and obj.is_integer():
-        return int(obj)
-    return obj
-
 def load_json(file_name: str):
     with open(file_name, 'r') as f:
         data = json.loads(f.read())

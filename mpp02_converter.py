@@ -18,6 +18,10 @@ DEG = np.pi / 180.0
 SERIES_DIRECTORY = R'd:/resources/astro/elp_mpp02'   # directory for ELP_MAIN.S1, etc.
 OUTPUT_DIRECTORY = R'./json'
 
+# Coefficients for precession of mean ecliptic and equinox
+PC = [0.0, 0.10180391e-4, 0.47020439e-6, -0.5417367e-9, -0.2507948e-11, 0.463486e-14]
+QC = [0.0, -0.113469002e-3, 0.12372674e-6, 0.1265417e-8, -0.1371808e-11, -0.320334e-14]
+
 def dms(ideg, imin, sec):
     return (ideg + imin/60.0 + sec/3600.0) * DEG
 
@@ -264,7 +268,13 @@ def write_json(mode, w0, nmpb, cmpb, fmpb, nper, cper, fper):
             if len(coeffs) > 0:
                 groups.append({ 'coord': coord, 'alpha': alpha, 'coeffs': np.array(coeffs).flatten().tolist() })
 
-    obj = { '_comment': f'ELP/MPP02({mode})', 'W': w0.tolist(), 'groups': groups }
+    obj = { 
+        '_comment': f'ELP/MPP02({mode})', 
+        'W': w0.tolist(), 
+        'PC': PC, 
+        'QC': QC, 
+        'groups': groups 
+    }
     file_path = f'{OUTPUT_DIRECTORY}/mpp02_{mode.lower()}_raw.json'
     with open(file_path, 'w') as f:
         json.dump(obj, f, indent=None, separators=(',', ':'))

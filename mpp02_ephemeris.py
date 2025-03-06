@@ -13,8 +13,6 @@ class MPP02Ephemeris:
     Computes position and velocity of the Moon using ELP/MPP02.
     Units: km for position, km/Julian day for velocity.
     """
-    PC = np.array([0.0, 0.10180391e-4, 0.47020439e-6, -0.5417367e-9, -0.2507948e-11, 0.463486e-14])
-    QC = np.array([0.0, -0.113469002e-3, 0.12372674e-6, 0.1265417e-8, -0.1371808e-11, -0.320334e-14])
     ECL_TO_EQU = misc.rotation_matrix(0, 84381.448 * misc.ARCSEC)  # angle ~23.44 deg
 
     def __init__(self, source):
@@ -24,6 +22,8 @@ class MPP02Ephemeris:
         if isinstance(source, str):
             source = misc.load_json(source)
         self.W = source['W']
+        self.PC = source['PC']
+        self.QC = source['QC']
         self.groups = source['groups']
         # Convert coeffs arrays to numpy arrays.
         for group in self.groups:

@@ -5,8 +5,6 @@ const { rotationMatrix, matrixMult, vectorMult } = require('./tools');
  * Units: km for position, km/Julian day for velocity.
  */
 class MPP02Ephemeris {
-    PC = new Float64Array([0, 0.10180391e-4, 0.47020439e-6, -0.5417367e-9, -0.2507948e-11, 0.463486e-14]);
-    QC = new Float64Array([0, -0.113469002e-3, 0.12372674e-6, 0.1265417e-8, -0.1371808e-11, -0.320334e-14]);
     ARCSEC = Math.PI / 180 / 3600;
     ECL_TO_EQU = rotationMatrix(0, 84381.448 * this.ARCSEC);    // angle ~23.44 deg
 
@@ -16,6 +14,8 @@ class MPP02Ephemeris {
      */
     constructor(source) {
         this.W = source['W'];
+        this.PC = source['PC'];
+        this.QC = source['QC'];
         this.groups = source['groups'];
     }
 

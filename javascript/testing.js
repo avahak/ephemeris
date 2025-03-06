@@ -1,3 +1,8 @@
+/**
+ * Sample code loading json files and computing positions and velocities
+ * with VSOP87AEphemeris and MPP02Ephemeris. Execution time is estimated also.
+ */
+
 const fs = require('fs');
 
 const VSOP87AEphemeris = require('./vsop87aEphemeris');
@@ -23,7 +28,7 @@ function test(size) {
     const bodyNames = Object.keys(jsonVSOP['bodies']);
     let vsop87 = new VSOP87AEphemeris(jsonVSOP);
     let count = 0;
-    let durationMs = 1000;
+    let durationMs = 1500;
     let time0 = performance.now();
     let time = time0;
     while (time < time0 + durationMs) {
@@ -42,7 +47,7 @@ function test(size) {
     // Test MPP02Ephemeris
     let mpp02 = new MPP02Ephemeris(jsonMPP02);
     count = 0;
-    durationMs = 1000;
+    durationMs = 1500;
     time0 = performance.now();
     time = time0;
     while (time < time0 + durationMs) {
@@ -50,7 +55,7 @@ function test(size) {
         const pv = mpp02.getPosVel(t);
         time = performance.now();
         count += 1;
-        // console.log(count, bodyName, t, pv);
+        // console.log(count, t, pv);
     }
     pv = mpp02.getPosVel(-5.25);
     console.log(`MPP02: getPosVel: ~${(count/(time-time0)*1000).toFixed(0)} calls/s.`);
