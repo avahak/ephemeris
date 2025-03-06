@@ -109,6 +109,6 @@ class MPP02Ephemeris:
 
 if __name__ == '__main__':
     # mpp02 = MPP02Ephemeris('./json/mpp02_llr_raw.json')
-    mpp02 = MPP02Ephemeris('./json/mpp02_llr_truncated_7.json')
+    mpp02 = MPP02Ephemeris('./json/mpp02_llr_truncated_medium.json')
     p, v = mpp02.get_pos_vel(-5.25)
     print(p.tolist(), v.tolist())

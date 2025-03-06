@@ -20,8 +20,6 @@ class VSOP87AEphemeris {
      * Units are km, Julian day.
      */
     getPosVel(bodyName, t) {
-        // Convert from centuries to millenia:
-        t = 0.1 * t;
         const tPow = Array.from({ length: 6 }, (_, k) => Math.pow(t, k));
         const tPowP = Array.from({ length: 6 }, (_, k) => k > 0 ? k * Math.pow(t, k-1) : 0);
         
@@ -47,7 +45,7 @@ class VSOP87AEphemeris {
         });
 
         pos = vectorMult(matrixMult(this.matrix, pos), this.AU);
-        vel = vectorMult(matrixMult(this.matrix, vel), this.AU / 365250);
+        vel = vectorMult(matrixMult(this.matrix, vel), this.AU / 36525);
         return { pos, vel };
     }
 }

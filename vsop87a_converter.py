@@ -2,8 +2,11 @@
 Reads coefficients in VSOP87A files and stores the series in one json file. 
 Also reads the accompanying vsop87.chk file that lists expected (x,y,z), (x',y',z') 
 output of the series and stores the output in another json file.
+
+Also converts time from millenia to centuries since J2000.0.
 """
 import json
+import numpy as np
 
 from tools.fixed_length_reader import FixedLengthReader
 
@@ -77,6 +80,9 @@ def load_raw_data():
                         continue
                     coord, alpha, *a_coeffs, s, k, a, b, c = reader.read(line)
                     # For our purposes we only need coord, alpha, a, b, c
+                    # Convert time from millenia to centuries
+                    a /= np.power(10.0, alpha)
+                    c /= 10.0
                     entry = [a, b, c]
                     groups: dict = bodies.setdefault(body_name, {})
                     groups.setdefault((coord-1, alpha), []).extend(entry)
@@ -103,8 +109,8 @@ def load_raw_data():
 def write_raw_json(obj_raw):
     # Writes the raw data into a json file
     with open(OUTPUT_RAW_JSON_PATH, 'w') as f:
-        json_string = json.dumps(obj_raw, indent=None, separators=(',', ':'))
-        f.write(json_string)
+        json_str = json.dumps(obj_raw, indent=None, separators=(',', ':'))
+        f.write(json_str)
     print(f'Wrote raw json to {OUTPUT_RAW_JSON_PATH}.')
 
 def write_chk_tests(tests):

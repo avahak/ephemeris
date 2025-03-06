@@ -13,20 +13,32 @@ class FormattedFloat:
     Stores a specific string representation for a float. 
     The value as float is still `float(repr)`.
     """
+    ZERO: "FormattedFloat" = None    # Assigned to '0' after
+
     def __init__(self, as_str: str):
         if not isinstance(as_str, str):
             raise ValueError('Argument should be formatted string representing the float.')
-        self.as_str = as_str
-        self.as_float = float(as_str)
+        self.__as_str = as_str
+        self.__as_float = float(as_str)
+
+    @property
+    def as_str(self) -> str:
+        return self.__as_str
+
+    @property
+    def as_float(self) -> float:
+        return self.__as_float
 
     def __repr__(self):
-        return f'FormattedFloat({self.as_str})'
+        return f'FormattedFloat({self.__as_str})'
     
     def __len__(self):
-        return len(self.as_str)
+        return len(self.__as_str)
     
     def __float__(self):
-        return self.as_float
+        return self.__as_float
+    
+FormattedFloat.ZERO = FormattedFloat('0')
 
 class FormattedFloatEncoder(json.JSONEncoder):
     """
@@ -113,14 +125,17 @@ def _compose_number(sign, mantissa_digits, decimal_place, exponent):
     exponent_part = f'e{exponent}' if exponent != 0 else ''
     return f'{sign_part}{decimal_part}{exponent_part}'
 
-def round_compact(x, sig_figs) -> FormattedFloat:
+def round_compact(x: float, sig_figs: int) -> FormattedFloat:
     """
-    Rounds x to sig_figs significant figures. Returns the result as a string that has 
+    Rounds x to sig_figs significant figures. Returns the result as a FormattedFloat that has 
     the most compact form found while still indicating exactly sig_figs significant figures.
+    Returns `FormattedFloat.ZERO` if sig_figs is 0.
     NOTE Rounding to sig_figs=17 does not change the number.
     """
-    if sig_figs <= 0:
+    if sig_figs < 0:
         raise ValueError('Invalid number of significant figures.')
+    if sig_figs == 0:
+        return FormattedFloat.ZERO
     sig_figs = min(sig_figs, 17)
     if x == 0:
         s = '0' if sig_figs == 1 else '0.' + ('0' * (sig_figs-1))
@@ -171,7 +186,7 @@ def round_compact_in_interval(x: float, a: float, b: float) -> FormattedFloat:
     if (a > x) or (x > b):
         raise ValueError('Invalid parameters: a<=x<=b is not satisfied.')
     if (x == 0.0) or (a <= 0.0 and b >= 0.0):
-        return FormattedFloat('0')
+        return FormattedFloat.ZERO
     # Now: a<=x<=b, x!=0
     best_found = FormattedFloat(str(x))
     for sig_figs in range(17, 0, -1):

@@ -27,8 +27,6 @@ class VSOP87AEphemeris:
         Returns position and velocity for given body and time in Julian centuries since J2000.0.
         Units are km, Julian day.
         """
-        # Convert from centuries to millenia:
-        t = 0.1 * t
         t_pow = np.power(t, np.arange(6))
         t_pow_p = np.array([k * t_pow[k-1] if k > 0 else 0.0 for k in range(6)])
 
@@ -44,10 +42,10 @@ class VSOP87AEphemeris:
 
             pos[coord] += t_pow[alpha] * sum_pos
             vel[coord] += t_pow_p[alpha] * sum_pos + t_pow[alpha] * sum_vel
-        return self.matrix @ pos * self.AU, self.matrix @ vel * self.AU / 365250.0
+        return self.matrix @ pos * self.AU, self.matrix @ vel * self.AU / 36525.0
 
 if __name__ == '__main__':
     # vsop87 = VSOP87AEphemeris('./json/vsop87a_raw.json')
-    vsop87 = VSOP87AEphemeris('./json/vsop87a_truncated_7.json')
+    vsop87 = VSOP87AEphemeris('./json/vsop87a_truncated_medium.json')
     p, v = vsop87.get_pos_vel('EARTH-MOON', -5.25)
     print(p.tolist(), v.tolist())

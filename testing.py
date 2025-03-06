@@ -1,7 +1,7 @@
 """
 Checks VSOP87AEphemeris and MPP02Ephemeris implementations against
 reference output from vsop87.chk and ELP/MPP02 Fortran code. Also computes
-errors against JPL DE ephemeris.
+errors of raw series against JPL DE ephemeris.
 """
 import numpy as np
 
@@ -9,6 +9,9 @@ import tools.misc as misc
 from vsop87a_ephemeris import VSOP87AEphemeris
 from mpp02_ephemeris import MPP02Ephemeris
 
+VSOP87A_RAW_JSON_PATH = R'./json/vsop87a_raw.json'
+MPP02_LLR_RAW_JSON_PATH = R'./json/mpp02_llr_raw.json'
+MPP02_405_RAW_JSON_PATH = R'./json/mpp02_405_raw.json'
 JPL_DE_EPHEMERIS_PATH = R'd:/resources/astro/de/de441.bsp'
 
 # ecliptic to equatorial J2000.0
@@ -156,9 +159,9 @@ def compare_pos_vel_functions(pos_vel, pos_vel_ref, num, print_header=True):
         print(f'{interval:>16}{str(err_0):>15}{str(err_std):>15}{str(err_1):>15}{f'{err_2:.0e}':>15}')
 
 def run_tests(test_num):
-    vsop87 = VSOP87AEphemeris(R'./json/vsop87a_raw.json')
-    mpp02_llr = MPP02Ephemeris(R'./json/mpp02_llr_raw.json')
-    mpp02_405 = MPP02Ephemeris(R'./json/mpp02_405_raw.json')
+    vsop87 = VSOP87AEphemeris(VSOP87A_RAW_JSON_PATH)
+    mpp02_llr = MPP02Ephemeris(MPP02_LLR_RAW_JSON_PATH)
+    mpp02_405 = MPP02Ephemeris(MPP02_405_RAW_JSON_PATH)
 
     print('\n', '-'*20, 'VSOP87A: CODE PORT TESTS AGAINST vsop87.chk', '-'*20)
     run_vsop87_checks(vsop87)
@@ -175,4 +178,4 @@ def run_tests(test_num):
         compare_pos_vel_functions(mpp02_llr.get_pos_vel, jpl_moon_pos_vel, test_num)
 
 if __name__ == '__main__':
-    run_tests(1000)
+    run_tests(2000)

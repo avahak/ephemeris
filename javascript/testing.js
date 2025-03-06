@@ -3,16 +3,16 @@ const fs = require('fs');
 const VSOP87AEphemeris = require('./vsop87aEphemeris');
 const MPP02Ephemeris = require('./mpp02Ephemeris');
 
-function test() {
+function test(size) {
     // Load JSON files
     let jsonVSOP, jsonMPP02;
     try {
         // let data = fs.readFileSync('../json/vsop87a_raw.json', 'utf8');
-        let data = fs.readFileSync('../json/vsop87a_truncated_7.json', 'utf8');
+        let data = fs.readFileSync(`../json/vsop87a_truncated_${size}.json`, 'utf8');
         jsonVSOP = JSON.parse(data);
 
         // data = fs.readFileSync('../json/mpp02_llr_raw.json', 'utf8');
-        data = fs.readFileSync('../json/mpp02_llr_truncated_7.json', 'utf8');
+        data = fs.readFileSync(`../json/mpp02_llr_truncated_${size}.json`, 'utf8');
         jsonMPP02 = JSON.parse(data);
     } catch (err) {
         console.error('Error loading JSON file:', err);
@@ -57,4 +57,6 @@ function test() {
     console.log("MPP02: getPosVel(-5.25)", pv);
 }
 
-test();
+// test('small');
+test('medium');
+// test('large');
