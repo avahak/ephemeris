@@ -4,41 +4,52 @@
 
 ## Accuracy of the series
 
+We measure the accuracy of the raw and truncated series against [JPL DE441](https://ssd.jpl.nasa.gov/doc/de440_de441.html).
+
 <details open>
 <summary>The Moon</summary>
-Image ![Error plot for the Moon](./images/error_moon.jpg)
+
+![Error plot for the Moon](./images/error_moon.jpg)
 </details>
 <details>
 <summary>Mercury</summary>
-Image ![Error plot for Mercury](./images/error_mercury.jpg)
+
+![Error plot for Mercury](./images/error_mercury.jpg)
 </details>
 <details>
 <summary>Venus</summary>
-Image ![Error plot for Venus](./images/error_venus.jpg)
+
+![Error plot for Venus](./images/error_venus.jpg)
 </details>
 <details>
 <summary>Mars</summary>
-Image ![Error plot for Mars](./images/error_mars.jpg)
+
+![Error plot for Mars](./images/error_mars.jpg)
 </details>
 <details>
 <summary>Earth-Moon barycenter</summary>
-Image ![Error plot for EMB](./images/error_earth-moon.jpg)
+
+![Error plot for EMB](./images/error_earth-moon.jpg)
 </details>
 <details>
 <summary>Jupiter</summary>
-Image ![Error plot for Jupiter](./images/error_jupiter.jpg)
+
+![Error plot for Jupiter](./images/error_jupiter.jpg)
 </details>
 <details>
 <summary>Saturn</summary>
-Image ![Error plot for Saturn](./images/error_saturn.jpg)
+
+![Error plot for Saturn](./images/error_saturn.jpg)
 </details>
 <details>
 <summary>Uranus</summary>
-Image ![Error plot for Uranus](./images/error_uranus.jpg)
+
+![Error plot for Uranus](./images/error_uranus.jpg)
 </details>
 <details>
 <summary>Neptune</summary>
-Image ![Error plot for Neptune](./images/error_neptune.jpg)
+
+![Error plot for Neptune](./images/error_neptune.jpg)
 </details>
 
 ## Refereces
