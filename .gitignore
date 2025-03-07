@@ -9,3 +9,5 @@ node_modules
 
 old
 new
+json/compress.py
+*.zip

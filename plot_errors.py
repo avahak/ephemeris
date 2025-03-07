@@ -47,7 +47,7 @@ def _moving_average_nonshrinking(data, w):
     cs = np.cumsum(data)
     y = np.zeros(n)
     for k in range(w):
-        # lost patience with indexing cs - just brute force it
+        # TODO lost patience with indexing cs - here we just brute force it
         y[k] = avg(k)
         y[n-k-1] = avg(n-k-1)
     if n-w+1 > w:

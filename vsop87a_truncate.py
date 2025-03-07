@@ -95,7 +95,6 @@ def simplify(a: float, b: float, c: float, alpha: int, body_name: str, size: str
 
 def truncate_series(obj_raw, size): 
     # Considers each term in the series and drops it or simplifies the coefficients
-    # based on threshold (THRESHOLD_WEIGHT[body_name] * THRESHOLD_BASE).
     bodies_truncated = {}
     term_count = {}
     for body_name, groups in obj_raw['bodies'].items():
