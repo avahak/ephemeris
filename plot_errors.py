@@ -84,15 +84,15 @@ def plot_errors(jpl_pv, my_pv, title):
 
             errors_avg = moving_average(errors[:,1], 100)
 
-            ax.scatter(errors[:,0], errors[:,1], s=1, color=color, alpha=0.1)
+            ax.scatter(errors[:,0], errors[:,1], s=1, color=color, alpha=0.2)
             ax.plot(errors[:,0], errors_avg, color=color, linewidth=line_width, label=size if size != 'raw' else 'no truncation')
 
         ax.set_yscale('log')
         ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda val, pos: str(int(val) if val.is_integer() else val)))
         # ax.set_xscale('symlog')
-        ax.set_xlabel('time [Julian year]', fontsize=14)
+        ax.set_xlabel('Time [Julian year]', fontsize=14)
         if ax_index == 0:
-            ax.set_ylabel('error [arcsec]', fontsize=14)
+            ax.set_ylabel(R'Relative error [arcsec]', fontsize=14)
         # ax.set_title(title)
         ax.set_axisbelow(True)
         ax.grid()
@@ -124,7 +124,7 @@ def main():
         # Moon
         jpl_pv_moon = lambda t: jpl_pos_vel([399, 3, 301], t)
         pv = lambda size, t: mpp02[size].get_pos_vel(t)
-        fig = plot_errors(jpl_pv_moon, pv, 'MOON - error of MPP02 and its truncations against JPL DE441')
+        fig = plot_errors(jpl_pv_moon, pv, 'MOON - Relative error of ELP/MPP02 and its truncations w.r.t. JPL DE441')
         save_image(fig, file_path = f'{PLOT_SAVE_DIRECTORY}/error_moon.jpg')
 
         # Planets
@@ -133,7 +133,7 @@ def main():
                 continue
             jpl_pv_moon = lambda t: jpl_pos_vel(JPL_DE_ROUTES[body_name], t)
             pv = lambda size, t: vsop87a[size].get_pos_vel(body_name, t)
-            fig = plot_errors(jpl_pv_moon, pv, f'{body_name} - error of VSOP87A and its truncations against JPL DE441')
+            fig = plot_errors(jpl_pv_moon, pv, f'{body_name} - Relative error of VSOP87A and its truncations w.r.t. JPL DE441')
             save_image(fig, file_path = f'{PLOT_SAVE_DIRECTORY}/error_{body_name.lower()}.jpg')
 
 if __name__ == '__main__':

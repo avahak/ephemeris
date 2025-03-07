@@ -4,7 +4,11 @@
 
 ## Accuracy of the series
 
-We measure the accuracy of the raw and truncated series against [JPL DE441](https://ssd.jpl.nasa.gov/doc/de440_de441.html).
+We measure the accuracy of the raw and truncated series with respect to [JPL DE441](https://ssd.jpl.nasa.gov/doc/de440_de441.html). The results are below. The continuous curves in the plots are moving averages of the errors, not direct error measurements. The y-axis in the plots represents the relative error with respect to the Sun, given by 
+$$
+\frac{|p(t)-p_{\rm DE441}(t)|}{|p_{\rm DE441}(t)|}.
+$$
+For convenience, the error is reported in arcseconds (with $1''=\pi/180/3600$). In the tangential case it approximates angular separation in arcseconds.
 
 <details open>
 <summary>The Moon</summary>
@@ -12,40 +16,48 @@ We measure the accuracy of the raw and truncated series against [JPL DE441](http
 ![Error plot for the Moon](./images/error_moon.jpg)
 </details>
 <details>
+
 <summary>Mercury</summary>
 
 ![Error plot for Mercury](./images/error_mercury.jpg)
 </details>
+
 <details>
 <summary>Venus</summary>
 
 ![Error plot for Venus](./images/error_venus.jpg)
 </details>
-<details>
-<summary>Mars</summary>
 
-![Error plot for Mars](./images/error_mars.jpg)
-</details>
 <details>
 <summary>Earth-Moon barycenter</summary>
 
 ![Error plot for EMB](./images/error_earth-moon.jpg)
 </details>
+
+<details>
+<summary>Mars</summary>
+
+![Error plot for Mars](./images/error_mars.jpg)
+</details>
+
 <details>
 <summary>Jupiter</summary>
 
 ![Error plot for Jupiter](./images/error_jupiter.jpg)
 </details>
+
 <details>
 <summary>Saturn</summary>
 
 ![Error plot for Saturn](./images/error_saturn.jpg)
 </details>
+
 <details>
 <summary>Uranus</summary>
 
 ![Error plot for Uranus](./images/error_uranus.jpg)
 </details>
+
 <details>
 <summary>Neptune</summary>
 
