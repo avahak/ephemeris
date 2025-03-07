@@ -19,7 +19,9 @@ Before truncation "raw" JSON files
 - [mpp02_llr_raw.json](./json/mpp02_llr_raw.json)
 - [mpp02_405_raw.json](./json/mpp02_405_raw.json)
 
-containing the whole series are created in [vsop87a_converter.py](vsop87a_converter.py) and [mpp02_converter.py](mpp02_converter.py). Only selected coefficients are stored. In case of VSOP87A coefficients are modified to use time as centuries instead of millenia since J2000.0. For MPP02 either of the series fitted to DE405 and LLR could be used but for truncation we have chosen to stick to LLR fitted series.
+containing the whole series are created in [vsop87a_converter.py](vsop87a_converter.py) and [mpp02_converter.py](mpp02_converter.py). Only selected coefficients are stored. 
+
+In case of VSOP87A coefficients are modified to use time as centuries instead of millenia since J2000.0 and EARTH is dropped from the series. The reason for dropping EARTH is that series for the Earth-Moon barycenter (EARTH-MOON) already exists and computing the position of Earth (or the Moon) based on the vector EARTH to EARTH-MOON would result in low accuracy. For MPP02 either of the series fitted to DE405 and LLR could be used but for truncation we have chosen to stick to LLR fitted series.
 
 ## Truncation of the series
 
@@ -30,20 +32,20 @@ Truncation is done in [vsop87a_truncate.py](vsop87a_truncate.py) and [mpp02_trun
 ``` 
 for a given constant threshold $T>0$. After repeated truncation of all last digits satisfying the condition, the same condition is used to determine whether we drop the series term completely. In the code, compact form of rounding to significant digits is used instead of plain truncation of last digit but the idea stays the same. The error in the nominator is defined to be the maximum positional error over the time period $[-T_{\text{MAX}},T_{\text{MAX}}]$, where $T_{\text{MAX}}>0$ is a constant. An upper bound for the error is used in the code to estimate it.
 
-For both VSOP87A and MPP02 three thresholds $T$ and $T_{\text{MAX}}$ are used to create "small", "medium", and "large" sized truncated JSON files stored in [./json](./json/) directory along with the raw series. The parameters are selected for each planets to tune the result.
+For both VSOP87A and MPP02 three thresholds $T$ and $T_{\text{MAX}}$ are used to create "small", "medium", and "large" sized truncated JSON files stored in [./json](./json/) directory along with the raw series. The parameters are selected for each planet to tune the result.
 
 The large variants basically have the same accurate as the original series (see [below](#accuracy)), but take much less space. The medium variants are practical compromises between accuracy and file size. Small variants are also included but might be practically outperformed by algorithms such as the one for position of the Moon in Meeus' Astronomical Algorithms [^meeus1][^miller1].
 
-The truncated files can be file compressed to save even more space. Below are file sizes before and after typical compression. Compressed files are not provided in this package.
+The truncated files can be file compressed to save even more space. Below are file sizes before and after ZIP-compression. Compressed files are not provided in this package.
 
 |JSON File|Size (KB)|Compressed size (KB)|
 |:---:|:---:|:---:|
-|VSOP87A small|27|9|
-|VSOP87A medium|122|41|
-|VSOP87A large|433|147|
-|MPP02 small|9|4|
-|MPP02 medium|35|13|
-|MPP02 large|211|76|
+|[VSOP87A small](./json/vsop87a_truncated_small.json)|27|9|
+|[VSOP87A medium](./json/vsop87a_truncated_medium.json)|122|41|
+|[VSOP87A large](./json/vsop87a_truncated_large.json)|433|147|
+|[MPP02 small](./json/mpp02_llr_truncated_small.json)|9|4|
+|[MPP02 medium](./json/mpp02_llr_truncated_medium.json)|35|13|
+|[MPP02 large](./json/mpp02_llr_truncated_large.json)|211|76|
 
 (Table might not be up to date.)
 
