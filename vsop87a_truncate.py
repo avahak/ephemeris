@@ -2,7 +2,7 @@
 Rounds and discards coefficients in the raw VSOP87 json file and stores 
 the result in another json file. 
 
-NOTE Precision of position for the Earth and the Moon based on difference 
+NOTE Accuracy of position for the Earth and the Moon based on difference 
 of EARTH-MOON and EARTH is low compared to alternative methods of computing them 
 (like ELP/MPP02), so we ignore EARTH and do not write it in the truncated json file.
 EARTH-MOON is still written.
