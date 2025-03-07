@@ -74,7 +74,7 @@ class MPP02Ephemeris:
             vp[2]*np.sin(v[1]) + vp[1]*v[2]*np.cos(v[1])
         ])
 
-        # Next, rotate from mean ecliptic and equinox of date to mean ecliptic and equinox of J2000.0.
+        # Rotate from mean ecliptic and equinox of date to mean ecliptic and equinox of J2000.0.
         p = np.sum(self.PC * t_pow)
         q = np.sum(self.QC * t_pow)
         pp = np.sum(self.PC * t_pow_p)
@@ -101,14 +101,17 @@ class MPP02Ephemeris:
         vel[2] = -2.0*p*sc*hp[0] + 2.0*q*sc*hp[1] + (pc1+qc1-1.0)*hp[2] 
         vel[2] += -2.0*pc2*h[0] + 2.0*qc2*h[1] - 2.0*d2p*h[2]
 
-        # Finally, rotate from mean ecliptic and equinox of J2000.0 to mean equator and equinox of J2000.0.
+        # Rotate from mean ecliptic and equinox of J2000.0 to mean equator and equinox of J2000.0.
         pos_equatorial = self.ECL_TO_EQU @ pos
         vel_equatorial = self.ECL_TO_EQU @ vel
 
         return pos_equatorial, vel_equatorial / 36525.0
 
-if __name__ == '__main__':
+def _test():
     # mpp02 = MPP02Ephemeris('./json/mpp02_llr_raw.json')
     mpp02 = MPP02Ephemeris('./json/mpp02_llr_truncated_medium.json')
     p, v = mpp02.get_pos_vel(-5.25)
     print(p.tolist(), v.tolist())
+
+if __name__ == '__main__':
+    _test()

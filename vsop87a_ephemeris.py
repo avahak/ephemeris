@@ -44,8 +44,11 @@ class VSOP87AEphemeris:
             vel[coord] += t_pow_p[alpha] * sum_pos + t_pow[alpha] * sum_vel
         return self.matrix @ pos * self.AU, self.matrix @ vel * self.AU / 36525.0
 
-if __name__ == '__main__':
+def _test():
     # vsop87 = VSOP87AEphemeris('./json/vsop87a_raw.json')
     vsop87 = VSOP87AEphemeris('./json/vsop87a_truncated_medium.json')
     p, v = vsop87.get_pos_vel('EARTH-MOON', -5.25)
     print(p.tolist(), v.tolist())
+
+if __name__ == '__main__':
+    _test()

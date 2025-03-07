@@ -11,7 +11,7 @@ import numpy as np
 class FormattedFloat:
     """
     Stores a specific string representation `as_str` for a float. 
-    The value as float is still `float(a_str)`.
+    The value as float is still `float(as_str)`.
     """
     ZERO: "FormattedFloat" = None    # Assigned to '0' after
 

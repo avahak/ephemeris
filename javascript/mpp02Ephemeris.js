@@ -68,7 +68,7 @@ class MPP02Ephemeris {
             vp[2]*Math.sin(v[1]) + vp[1]*v[2]*Math.cos(v[1])
         ];
 
-        // Next, rotate from mean ecliptic and equinox of date to mean ecliptic and equinox of J2000.0.
+        // Rotate from mean ecliptic and equinox of date to mean ecliptic and equinox of J2000.0.
         const p = this.PC.reduce((acc, value, k) => acc + value * tPow[k], 0);
         const q = this.QC.reduce((acc, value, k) => acc + value * tPow[k], 0);
         const pp = this.PC.reduce((acc, value, k) => acc + value * tPowP[k], 0);
@@ -95,7 +95,7 @@ class MPP02Ephemeris {
         vel[2] = -2*p*sc*hp[0] + 2*q*sc*hp[1] + (pc1+qc1-1)*hp[2];
         vel[2] += -2*pc2*h[0] + 2*qc2*h[1] - 2*d2p*h[2];
 
-        // Finally, rotate from mean ecliptic and equinox of J2000.0 to mean equator and equinox of J2000.0.
+        // Rotate from mean ecliptic and equinox of J2000.0 to mean equator and equinox of J2000.0.
         const posEquatorial = matrixMult(this.ECL_TO_EQU, pos);
         const velEquatorial = matrixMult(this.ECL_TO_EQU, vel);
 

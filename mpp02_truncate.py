@@ -17,7 +17,7 @@ T_MAX = 10.0
 MAX_ERROR_PER_CHAR = {
     'small': 5.0e-8,
     'medium': 2.0e-9,
-    'large': 4.0e-11
+    'large': 5.0e-11
 }
 
 # The series gives lon (coord 0) and lat (coord 1) in arcsec, and r (coord 2) in km.
@@ -130,6 +130,6 @@ def truncate_and_write_file(size):
     show_truncation_error(obj_raw, obj_truncated)
 
 if __name__ == '__main__':
-    truncate_and_write_file('small')
-    truncate_and_write_file('medium')
+    # truncate_and_write_file('small')
+    # truncate_and_write_file('medium')
     truncate_and_write_file('large')
