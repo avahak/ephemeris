@@ -36,7 +36,7 @@ Truncation is done in [vsop87a_truncate.py](vsop87a_truncate.py) and [mpp02_trun
 ``` 
 for a given constant threshold $C>0$. This process is repeated until no last digit in any coefficient satisfies the condition. Then the same condition is used to determine whether we drop the series term completely. In the code, compact form of rounding to significant digits is used instead of plain truncation of last digit but the idea stays the same. The error in the nominator is defined to be the maximum positional error over the time period $[-T_{\text{MAX}},T_{\text{MAX}}]$, where $T_{\text{MAX}}>0$ is a constant. An upper bound for the error is used in the code to estimate it.
 
-For both VSOP87A and MPP02 parameters $C$ and $T_{\text{MAX}}$ are used to create "small", "medium", and "large" sized truncated JSON files stored in [./json](./json/) directory along with the raw series. The parameters are selected for each planet to tune the result.
+For both VSOP87A and MPP02 parameters $C$ and $T_{\text{MAX}}$ are used to create "small", "medium", and "large" sized truncated JSON files stored in [./json](./json/) directory. The parameters are selected for each planet to tune the result.
 
 The large variants retain nearly the same accuracy as the original series (see [below](#accuracy)) while taking much less space. The medium variants are practical compromises between accuracy and file size. Small variants are also included but are likely outperformed in practice by concise low-accuracy algorithms such as the one for position of the Moon in Meeus' Astronomical Algorithms [^meeus1][^miller1].
 
